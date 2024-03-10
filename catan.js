@@ -1166,7 +1166,7 @@ HexTile.prototype.drawBase = function() {
         drawingContext.fillStyle = "rgba(255,255,255,0)";
         drawingContext.strokeStyle = "#FAEB96";
     } else if (mapStyle == "new") {
-        drawingContext.lineWidth = 2;
+        drawingContext.lineWidth = 1;
         drawingContext.fillStyle = "rgba(255,255,255,0)";
         drawingContext.strokeStyle = "rgba(227, 221, 150, 255)";
     } else {
@@ -1220,9 +1220,9 @@ HexTile.prototype.drawBase = function() {
 }
 HexTile.prototype.drawNumber = function() {
 
-    drawingContext.fillStyle = "#FFFFFF";
-    drawingContext.strokeStyle = "#000000";
-    drawingContext.lineWidth = 3;
+    drawingContext.fillStyle = "rgba(227, 221, 150, 255)";//"#FFFFFF";
+    drawingContext.strokeStyle = "rgba(113, 110, 75, 128)";//"#000000";
+    drawingContext.lineWidth = size * 0.02;
 
     drawingContext.beginPath();
     drawingContext.arc(this.xCenter, this.yCenter, 0.375 * size,
@@ -1232,20 +1232,35 @@ HexTile.prototype.drawNumber = function() {
     drawingContext.fill();
     drawingContext.stroke();
 
-    var fontSizePt = Math.ceil(30 / 40 * (.45 * size - 8) + 6);
+    //var fontSizePt = Math.ceil(30 / 40 * (.45 * size - 8) + 6);
+    // Dynamically scale the font size
+    // 0.55 for 2 and 12
+    // 0.95 for 6 and 8
+    var scale = 0.95 - ((Math.abs(7 - this.number) - 1) * ((0.95 - 0.55) / 4));
+    var fontSizePt = Math.ceil(30 / 40 * (scale * size - 8) + 6);
 
-    drawingContext.font = "bold " + fontSizePt + "pt sans-serif";
+    drawingContext.font = fontSizePt + "px 'Nazanin LT Bold'";
     drawingContext.textAlign = "center";
+    var textWidth = drawingContext.measureText(this.number.toString()).width;
     if (this.isHighlyProductive()) {
-        drawingContext.fillStyle = "#FF0000";
+        drawingContext.fillStyle = "#D90000";
     } else {
         drawingContext.fillStyle = "#000000";
     }
     drawingContext.fillText(
         this.number.toString(),
-        this.xCenter,
-        this.yCenter + Math.ceil(0.85 * fontSizePt / 2)
+        this.xCenter - 0.5,// - textWidth / 2,
+        this.yCenter + Math.ceil(0.35 * fontSizePt / 2)//this.yCenter + Math.ceil(0.85 * fontSizePt / 2)
     );
+
+    var dotCount = 6 - Math.abs(7 - this.number);
+    for (var i = 0; i < dotCount; i += 1) {
+        
+        drawingContext.beginPath();
+        drawingContext.arc(this.xCenter - (0.08 * size * (dotCount - 1) / 2) + (0.08 * size * i), this.yCenter + (0.2 * size), 0.025 * size, 0, 2 * Math.PI, false);
+        drawingContext.closePath();
+        drawingContext.fill();
+    }
 
 }
 
