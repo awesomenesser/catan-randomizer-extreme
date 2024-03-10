@@ -276,6 +276,78 @@ doublePeanutMap.coordinatesArray = [
     [6, -3]
 ];
 
+var expandedDoubleMap = new MapDefinition();
+expandedDoubleMap.resourceDict = {
+    "desert": 3,
+    "wood": 10,
+    "clay": 8,
+    "wool": 10,
+    "grain": 10,
+    "ore": 8
+}
+expandedDoubleMap.numberDict = {
+    2: 3,
+    3: 5,
+    4: 5,
+    5: 5,
+    6: 5,
+    8: 5,
+    9: 5,
+    10: 5,
+    11: 5,
+    12: 3
+}
+expandedDoubleMap.coordinatesArray = [
+    [-8, 2],
+    [-8, 0],
+    [-8, -2],
+    [-8, -4],
+    [-6, 3],
+    [-6, 1],
+    [-6, -1],
+    [-6, -3],
+    [-6, -5],
+    [-4, 4],
+    [-4, 2],
+    [-4, 0],
+    [-4, -2],
+    [-4, -4],
+    [-4, 5],
+    [-2, 3],
+    [-2, 1],
+    [-2, -1],
+    [-2, -3],
+    [-2, -5],
+    [0, 6],
+    [0, 4],
+    [0, 2],
+    [0, 0],
+    [0, -2],
+    [0, -4],
+    [0, -6],
+    [2, 5],
+    [2, 3],
+    [2, 1],
+    [2, -1],
+    [2, -3],
+    [2, -5],
+    [4, 6],
+    [4, 4],
+    [4, 2],
+    [4, 0],
+    [4, -2],
+    [4, -4],
+    [6, 5],
+    [6, 3],
+    [6, 1],
+    [6, -1],
+    [6, -3],
+    [8, 4],
+    [8, 2],
+    [8, 0],
+    [8, -2]    
+];
+
 var expandedDoublePeanutMap = new MapDefinition();
 expandedDoublePeanutMap.resourceDict = {
     "desert": 3,
@@ -546,10 +618,13 @@ function generate() {
         case "double":
             mapDef = doubleMap;
             break;
-        case "doublePeanut":
+        case "doublepeanut":
             mapDef = doublePeanutMap;
             break;
-        case "expDoublePeanut":
+        case "expandeddouble":
+            mapDef = expandedDoubleMap;
+            break;
+        case "expandeddoublepeanut":
             mapDef = expandedDoublePeanutMap;
             break;
         default:
