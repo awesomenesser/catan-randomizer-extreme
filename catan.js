@@ -31,6 +31,14 @@ var resourceTypeToImageCanvas = {
     "grain": null,
     "desert": null
 };
+var newResourceTypeToImageCanvas = {
+    "ore": null,
+    "clay": null,
+    "wool": null,
+    "wood": null,
+    "grain": null,
+    "desert": null
+};
 
 //var allImagesLoaded = false;
 
@@ -730,12 +738,7 @@ function loadImages(callback) {
     var imgPaths = [];
     for (var key in resourceTypeToImageCanvas) {
         rTypes.push(key);
-        var typeStr = "new";
-        if (mapStyle == "retro")
-        {
-            typeStr = "";
-        }
-        imgPaths.push("images/" + typeStr + key + ".png");
+        imgPaths.push("images/" + key + ".png");
     }
 
     preloadImages(imgPaths, function(images) {
@@ -757,6 +760,29 @@ function loadImages(callback) {
 
     });
 
+    for (var key in newResourceTypeToImageCanvas) {
+        rTypes.push(key);
+        imgPaths.push("images/new" + key + ".png");
+    }
+
+    preloadImages(imgPaths, function(images) {
+
+        for (var i = 0; i < imgPaths.length; i += 1) {
+            //newResourceTypeToImage[ rTypes[i] ] = images[i];
+            var img = images[i];
+            var imgCanvas = document.createElement("canvas");
+            var imgContext = imgCanvas.getContext("2d");
+
+            imgCanvas.width = img.width;
+            imgCanvas.height = img.height;
+            imgContext.drawImage(img, 0, 0);
+
+            newResourceTypeToImageCanvas[rTypes[i]] = imgCanvas;
+        }
+
+        callback();
+
+    });
 }
 
 function generate() {
@@ -1169,6 +1195,10 @@ HexTile.prototype.drawBase = function() {
     if ((mapStyle == "retro") || (mapStyle == "new")) {
 
         var imgCanvas = resourceTypeToImageCanvas[this.resourceType];
+        if (mapStyle == "new")
+        {
+            imgCanvas = newResourceTypeToImageCanvas[this.resourceType];
+        }
 
         drawingContext.drawImage(
             imgCanvas,
