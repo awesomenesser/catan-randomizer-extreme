@@ -8,7 +8,7 @@ var canvasCenterY;
 
 // ----- Hexagon drawing parameters -----
 
-var mapStyle = "retro";
+var mapStyle = "new";
 
 var size = null;
 var defaultFillStyle = "#ffffff";
@@ -730,7 +730,12 @@ function loadImages(callback) {
     var imgPaths = [];
     for (var key in resourceTypeToImageCanvas) {
         rTypes.push(key);
-        imgPaths.push("images/" + key + ".png");
+        var typeStr = "new";
+        if (mapStyle == "retro")
+        {
+            typeStr = "";
+        }
+        imgPaths.push("images/" + typeStr + key + ".png");
     }
 
     preloadImages(imgPaths, function(images) {
@@ -1132,6 +1137,10 @@ HexTile.prototype.drawBase = function() {
         drawingContext.lineWidth = 10;
         drawingContext.fillStyle = "rgba(255,255,255,0)";
         drawingContext.strokeStyle = "#FAEB96";
+    } else if (mapStyle == "new") {
+        drawingContext.lineWidth = 2;
+        drawingContext.fillStyle = "rgba(255,255,255,0)";
+        drawingContext.strokeStyle = "rgba(227, 221, 150, 255)";
     } else {
         drawingContext.lineWidth = this.lineWidth;
         drawingContext.fillStyle = this.fillStyle;
@@ -1157,7 +1166,7 @@ HexTile.prototype.drawBase = function() {
     }
     drawingContext.closePath();
 
-    if (mapStyle == "retro") {
+    if ((mapStyle == "retro") || (mapStyle == "new")) {
 
         var imgCanvas = resourceTypeToImageCanvas[this.resourceType];
 
