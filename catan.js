@@ -211,7 +211,8 @@ doubleMap.coordinatesArray = [
     [6, 3],
     [6, 1],
     [6, -1],
-    [6, -3]
+    [6, -3],
+    [8, -2]
 ];
 
 var doublePeanutMap = new MapDefinition();
@@ -345,8 +346,9 @@ expandedDoubleMap.coordinatesArray = [
     [8, 4],
     [8, 2],
     [8, 0],
-    [8, -2]    
-];
+    [8, -2],
+    [10, -1]
+]
 
 var expandedDoublePeanutMap = new MapDefinition();
 expandedDoublePeanutMap.resourceDict = {
