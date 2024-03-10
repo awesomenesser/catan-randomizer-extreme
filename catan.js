@@ -313,7 +313,8 @@ expandedDoubleMap.coordinatesArray = [
     [-4, 0],
     [-4, -2],
     [-4, -4],
-    [-4, 5],
+    [-4, -6],
+    [-2, 5],
     [-2, 3],
     [-2, 1],
     [-2, -1],
@@ -346,8 +347,7 @@ expandedDoubleMap.coordinatesArray = [
     [8, 4],
     [8, 2],
     [8, 0],
-    [8, -2],
-    [10, -1]
+    [8, -2]
 ]
 
 var expandedDoublePeanutMap = new MapDefinition();
@@ -504,8 +504,89 @@ tripleMap.coordinatesArray = [
     [8, -4]    
 ];
 
-var expandedTripleMap = new MapDefinition();
-expandedTripleMap.resourceDict = {
+var tripleWideMap = new MapDefinition();
+tripleWideMap.resourceDict = {
+    "desert": 3,
+    "wood": 12,
+    "clay": 9,
+    "wool": 12,
+    "grain": 12,
+    "ore": 9
+}
+tripleWideMap.numberDict = {
+    2: 3,
+    3: 6,
+    4: 6,
+    5: 6,
+    6: 6,
+    8: 6,
+    9: 6,
+    10: 6,
+    11: 6,
+    12: 3
+}
+tripleWideMap.coordinatesArray = [
+    [-10, 1],
+    [-10, -1],
+    [-10, -3],
+    [-8, 2],
+    [-8, 0],
+    [-8, -2],
+    [-8, -4],
+    [-6, 3],
+    [-6, 1],
+    [-6, -1],
+    [-6, -3],
+    [-6, -5],
+    [-4, 4],
+    [-4, 2],
+    [-4, 0],
+    [-4, -2],
+    [-4, -4],
+    [-4, -6],
+    [-2, 5],
+    [-2, 3],
+    [-2, 1],
+    [-2, -1],
+    [-2, -3],
+    [-2, -5],
+    [-2, -7],
+    [0, 6],
+    [0, 4],
+    [0, 2],
+    [0, 0],
+    [0, -2],
+    [0, -4],
+    [0, -6],
+    [2, 7],
+    [2, 5],
+    [2, 3],
+    [2, 1],
+    [2, -1],
+    [2, -3],
+    [2, -5],
+    [4, 6],
+    [4, 4],
+    [4, 2],
+    [4, 0],
+    [4, -2],
+    [4, -4],
+    [6, 5],
+    [6, 3],
+    [6, 1],
+    [6, -1],
+    [6, -3],
+    [8, 4],
+    [8, 2],
+    [8, 0],
+    [8, -2],
+    [10, 3],
+    [10, 1],
+    [10, -1]    
+];
+
+var expandedTripleWideMap = new MapDefinition();
+expandedTripleWideMap.resourceDict = {
     "desert": 4,
     "wood": 14,
     "clay": 11,
@@ -513,7 +594,7 @@ expandedTripleMap.resourceDict = {
     "grain": 14,
     "ore": 11
 }
-expandedTripleMap.numberDict = {
+expandedTripleWideMap.numberDict = {
     2: 4,
     3: 7,
     4: 7,
@@ -525,38 +606,75 @@ expandedTripleMap.numberDict = {
     11: 7,
     12: 4
 }
-expandedTripleMap.coordinatesArray = [
-    //TODO
-    [-6, 2],
-    [-6, 0],
-    [-6, -2],
-    [-4, 3],
-    [-4, 1],
-    [-4, -1],
-    [-4, -3],
-    [-2, 4],
-    [-2, 2],
-    [-2, 0],
-    [-2, -2],
-    [-2, -4],
-    [0, 5],
-    [0, 3],
-    [0, 1],
-    [0, -1],
-    [0, -3],
-    [0, -5],
-    [2, 4],
-    [2, 2],
-    [2, 0],
-    [2, -2],
-    [2, -4],
-    [4, 3],
-    [4, 1],
-    [4, -1],
-    [4, -3],
-    [6, 2],
-    [6, 0],
-    [6, -2]
+expandedTripleWideMap.coordinatesArray = [
+    [-10, 1],
+    [-10, -1],
+    [-10, -3],
+    [-10, -5],
+    [-8, 2],
+    [-8, 0],
+    [-8, -2],
+    [-8, -4],
+    [-8, -6],
+    [-6, 3],
+    [-6, 1],
+    [-6, -1],
+    [-6, -3],
+    [-6, -5],
+    [-6, -7],
+    [-4, 4],
+    [-4, 2],
+    [-4, 0],
+    [-4, -2],
+    [-4, -4],
+    [-4, -6],
+    [-4, -8],
+    [-2, 5],
+    [-2, 3],
+    [-2, 1],
+    [-2, -1],
+    [-2, -3],
+    [-2, -5],
+    [-2, -7],
+    [0, 6],
+    [0, 4],
+    [0, 2],
+    [0, 0],
+    [0, -2],
+    [0, -4],
+    [0, -6],
+    [2, 7],
+    [2, 5],
+    [2, 3],
+    [2, 1],
+    [2, -1],
+    [2, -3],
+    [2, -5],
+    [4, 8],
+    [4, 6],
+    [4, 4],
+    [4, 2],
+    [4, 0],
+    [4, -2],
+    [4, -4],
+    [6, 7],
+    [6, 5],
+    [6, 3],
+    [6, 1],
+    [6, -1],
+    [6, -3],
+    [8, 6],
+    [8, 4],
+    [8, 2],
+    [8, 0],
+    [8, -2],
+    [10, 5],
+    [10, 3],
+    [10, 1],
+    [10, -1],
+    [12, 4],
+    [12, 2],
+    [12, 0]
 ];
 // ----- FUNCTIONS -----
 
@@ -657,6 +775,12 @@ function generate() {
             break;
         case "triple":
             mapDef = tripleMap;
+            break;
+        case "triplewide":
+            mapDef = tripleWideMap;
+            break;
+        case "expandedtriplewide":
+            mapDef = expandedTripleWideMap;
             break;
         default:
             mapDef = normalMap;
