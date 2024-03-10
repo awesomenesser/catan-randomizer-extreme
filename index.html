@@ -7,6 +7,8 @@
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
+	<!-- Use this line if you want to run locally -->
+    <!-- <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css"> -->
 
     <link rel="stylesheet" href="css/stylesheet.css" type="text/css">
 
@@ -108,14 +110,18 @@
         </div>
 
         <button class="btn btn-sm btn-block btn-primary" id="gen-map-button" disabled>Loading lands...</button>
-    </div>
 
-    <div class="font_preload" style="opacity: 0">
-        <span style="font-family: 'Nazanin LT Bold';"></span>
+        <div class="font_preload" style="opacity: 0">
+            <!-- Used to trick the brower into preloading the font so it will be ready when the generator needs it -->
+            <span style="font-family: 'Nazanin LT Bold';"></span>
+            <div>Fonts made from <a href="http://www.onlinewebfonts.com">Web Fonts</a>is licensed by CC BY 4.0</div>
+        </div>
     </div>
     
     <div class="col-sm-9 map-container" id="map-container"></div>
 
+    <!-- Use this line if you need to run locally -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> -->
     <script src="//code.jquery.com/jquery-1.4.2.min.js" crossorigin="anonymous"></script>
 
 
