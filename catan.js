@@ -150,9 +150,235 @@ expandedMap.coordinatesArray = [
     [4, -3],
     [6, 2],
     [6, 0],
+    [6, -2]    
+];
+
+var doubleMap = new MapDefinition();
+doubleMap.resourceDict = {
+    "desert": 2,
+    "wood": 8,
+    "clay": 6,
+    "wool": 8,
+    "grain": 8,
+    "ore": 6
+}
+doubleMap.numberDict = {
+    2: 2,
+    3: 4,
+    4: 4,
+    5: 4,
+    6: 4,
+    8: 4,
+    9: 4,
+    10: 4,
+    11: 4,
+    12: 2
+}
+doubleMap.coordinatesArray = [
+    [-10, 2],
+    [-10, 0],
+    [-10, -2],
+    [-8, 3],
+    [-8, 1],
+    [-8, -1],
+    [-8, -3],
+    [-6, 4],
+    [-6, 2],
+    [-6, 0],
+    [-6, -2],
+    [-6, -4],
+    [-4, 3],
+    [-4, 1],
+    [-4, -1],
+    [-4, -3],
+    [-2, 2],
+    [-2, 0],
+    [-2, -2],
+    [0, 3],
+    [0, 1],
+    [0, -1],
+    [2, 4],
+    [2, 2],
+    [2, 0],
+    [2, -2],
+    [4, 5],
+    [4, 3],
+    [4, 1],
+    [4, -1],
+    [4, -3],
+    [6, 4],
+    [6, 2],
+    [6, 0],
+    [6, -2],
+    [8, 3],
+    [8, 1],
+    [8, -1]
+];
+
+var expandedDoubleMap = new MapDefinition();
+expandedDoubleMap.resourceDict = {
+    "desert": 3,
+    "wood": 10,
+    "clay": 8,
+    "wool": 10,
+    "grain": 10,
+    "ore": 8
+}
+expandedDoubleMap.numberDict = {
+    2: 3,
+    3: 5,
+    4: 5,
+    5: 5,
+    6: 5,
+    8: 5,
+    9: 5,
+    10: 5,
+    11: 5,
+    12: 3
+}
+expandedDoubleMap.coordinatesArray = [
+    //TODO
+    [-6, 2],
+    [-6, 0],
+    [-6, -2],
+    [-4, 3],
+    [-4, 1],
+    [-4, -1],
+    [-4, -3],
+    [-2, 4],
+    [-2, 2],
+    [-2, 0],
+    [-2, -2],
+    [-2, -4],
+    [0, 5],
+    [0, 3],
+    [0, 1],
+    [0, -1],
+    [0, -3],
+    [0, -5],
+    [2, 4],
+    [2, 2],
+    [2, 0],
+    [2, -2],
+    [2, -4],
+    [4, 3],
+    [4, 1],
+    [4, -1],
+    [4, -3],
+    [6, 2],
+    [6, 0],
     [6, -2]
 ];
 
+var tripleMap = new MapDefinition();
+tripleMap.resourceDict = {
+    "desert": 3,
+    "wood": 12,
+    "clay": 9,
+    "wool": 12,
+    "grain": 12,
+    "ore": 9
+}
+tripleMap.numberDict = {
+    2: 3,
+    3: 6,
+    4: 6,
+    5: 6,
+    6: 6,
+    8: 6,
+    9: 6,
+    10: 6,
+    11: 6,
+    12: 3
+}
+tripleMap.coordinatesArray = [
+    //TODO
+    [-6, 2],
+    [-6, 0],
+    [-6, -2],
+    [-4, 3],
+    [-4, 1],
+    [-4, -1],
+    [-4, -3],
+    [-2, 4],
+    [-2, 2],
+    [-2, 0],
+    [-2, -2],
+    [-2, -4],
+    [0, 5],
+    [0, 3],
+    [0, 1],
+    [0, -1],
+    [0, -3],
+    [0, -5],
+    [2, 4],
+    [2, 2],
+    [2, 0],
+    [2, -2],
+    [2, -4],
+    [4, 3],
+    [4, 1],
+    [4, -1],
+    [4, -3],
+    [6, 2],
+    [6, 0],
+    [6, -2]
+];
+
+var expandedTripleMap = new MapDefinition();
+expandedTripleMap.resourceDict = {
+    "desert": 4,
+    "wood": 14,
+    "clay": 11,
+    "wool": 14,
+    "grain": 14,
+    "ore": 11
+}
+expandedTripleMap.numberDict = {
+    2: 4,
+    3: 7,
+    4: 7,
+    5: 7,
+    6: 7,
+    8: 7,
+    9: 7,
+    10: 7,
+    11: 7,
+    12: 4
+}
+expandedTripleMap.coordinatesArray = [
+    //TODO
+    [-6, 2],
+    [-6, 0],
+    [-6, -2],
+    [-4, 3],
+    [-4, 1],
+    [-4, -1],
+    [-4, -3],
+    [-2, 4],
+    [-2, 2],
+    [-2, 0],
+    [-2, -2],
+    [-2, -4],
+    [0, 5],
+    [0, 3],
+    [0, 1],
+    [0, -1],
+    [0, -3],
+    [0, -5],
+    [2, 4],
+    [2, 2],
+    [2, 0],
+    [2, -2],
+    [2, -4],
+    [4, 3],
+    [4, 1],
+    [4, -1],
+    [4, -3],
+    [6, 2],
+    [6, 0],
+    [6, -2]
+];
 // ----- FUNCTIONS -----
 
 window.onresize = function(event) {
@@ -237,6 +463,9 @@ function generate() {
     switch ($("input:radio['name=game-type']:checked").val()) {
         case "expanded":
             mapDef = expandedMap;
+            break;
+        case "double":
+            mapDef = doubleMap;
             break;
         default:
             mapDef = normalMap;
