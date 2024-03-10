@@ -760,6 +760,8 @@ function loadImages(callback) {
 
     });
 
+    rTypes = [];
+    imgPaths = [];
     for (var key in newResourceTypeToImageCanvas) {
         rTypes.push(key);
         imgPaths.push("images/new" + key + ".png");
