@@ -19,6 +19,39 @@
             font-display:block;
         }
     </style>
+
+    <style>
+        body {
+            background-image: url('images/waterbg.png');
+            background-repeat: repeat; /* This property ensures the background image repeats both horizontally and vertically */
+            background-size: 10%; /* This property sets the background image size to 50% of the container */
+        }
+    </style>
+
+    <style>
+        .col-xs-2 {
+            background-color: rgba(255, 255, 255, 0.5); /* White background with 50% transparency */
+        }
+    </style>
+
+    <style>
+        .panel-default>.panel-heading {
+            background-color:#f5f5f577;
+        }
+    </style>
+
+    <style>
+        .panel-default {
+            background-color: rgba(255, 255, 255, 0.25); /* White background with 16% transparency */
+        }
+    </style>
+
+    <style>
+        .list-group-item {
+            background-color: rgba(255, 255, 255, 0.0); /* White background with 0% transparency */
+        }
+    </style>
+    
 </head>
 
 <body>
@@ -26,7 +59,7 @@
         <h1 class="text-center">Extreme Catan Map Generator</h1>
         <p class="text-center">Created by <a href="http://www.jaredkirschner.com">Jared Kirschner</a>. Modified by <a href="http://github.com/ragib06">Ragib Ahsan</a>, <a href="http://github.com/matheusfavieira">Matheus Vieira</a>, and  <a href="http://github.com/awesomenesser">Robert Givens</a></p>
         <div class="panel panel-default">
-            <div class="panel-heading">Configurations:</div>
+            <div class="panel-heading"><strong>Configurations:</strong></div>
             <ul class="list-group">
                 <li class="list-group-item">
                     <strong>Choose amount of players:</strong>
@@ -131,7 +164,7 @@
         <p class="text-center"></p>
 
         <!-- <div class="panel panel-default">
-            <div class="panel-heading">Statistics:</div>
+            <div class="panel-heading"><strong>Statistics:</strong></div>
             <ul class="list-group">
                 <li class="list-group-item">
                     Total probablility brick: 
@@ -156,7 +189,7 @@
             </ul>
         </div> -->
 
-        <div class="font_preload" style="opacity: 0">
+        <div class="font_preload" style="opacity: 0; font-size: 1px;">
             <!-- Used to trick the brower into preloading the font so it will be ready when the generator needs it -->
             <span style="font-family: 'Nazanin LT Bold';"></span>
             <div>Fonts made from http://www.onlinewebfonts.com, Web Fonts is licensed by CC BY 4.0</div>
