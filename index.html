@@ -176,6 +176,32 @@
             init();
         });
     </script>
+
+    <script>
+        var mapContainer = document.getElementById("map-container");
+        var image = mapContainer.querySelector("img");
+
+        var pressTimer;
+
+        mapContainer.addEventListener("touchstart", function(event) {
+            // Start the timer when user touches the container
+            pressTimer = window.setTimeout(function() {
+                // Trigger image download when long press is detected
+                var link = document.createElement("a");
+                link.href = image.src;
+                link.download = "image.jpg";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                clearTimeout(pressTimer);
+            }, 1000); // Adjust the duration as needed (1000 milliseconds = 1 second)
+        });
+
+        mapContainer.addEventListener("touchend", function(event) {
+            // Cancel the timer when user lifts finger from the container
+            clearTimeout(pressTimer);
+        });
+    </script>
 </body>
 
 </html>
