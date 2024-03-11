@@ -159,7 +159,7 @@
         <div class="font_preload" style="opacity: 0">
             <!-- Used to trick the brower into preloading the font so it will be ready when the generator needs it -->
             <span style="font-family: 'Nazanin LT Bold';"></span>
-            <div>Fonts made from <a href="http://www.onlinewebfonts.com">Web Fonts</a>is licensed by CC BY 4.0</div>
+            <div>Fonts made from http://www.onlinewebfonts.com, Web Fonts is licensed by CC BY 4.0</div>
         </div>
     </div>
     
@@ -169,37 +169,10 @@
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> -->
     <script src="//code.jquery.com/jquery-1.4.2.min.js" crossorigin="anonymous"></script>
 
-
     <script src="catan.js" type="text/javascript"></script>
     <script type="text/javascript" language="javascript">
         $(document).ready(function() {
             init();
-        });
-    </script>
-
-    <script>
-        var mapContainer = document.getElementById("map-container");
-        var image = mapContainer.querySelector("img");
-
-        var pressTimer;
-
-        mapContainer.addEventListener("touchstart", function(event) {
-            // Start the timer when user touches the container
-            pressTimer = window.setTimeout(function() {
-                // Trigger image download when long press is detected
-                var link = document.createElement("a");
-                link.href = image.src;
-                link.download = "image.jpg";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                clearTimeout(pressTimer);
-            }, 1000); // Adjust the duration as needed (1000 milliseconds = 1 second)
-        });
-
-        mapContainer.addEventListener("touchend", function(event) {
-            // Cancel the timer when user lifts finger from the container
-            clearTimeout(pressTimer);
         });
     </script>
 </body>
