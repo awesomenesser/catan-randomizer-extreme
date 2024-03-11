@@ -980,7 +980,7 @@ CatanMap.prototype.generate = function() {
             this.coordToTile[newCoords.toString()] = desertHexTile;
         }
 
-        if ($('input[name=preventAjacentLowNumbers]:checked').val() == "avoid") {
+        if ($('input[name=preventAdjacentLowNumbers]:checked').val() == "avoid") {
             // Move all non-productive tile numbers (2 and 12) to the front
             // of the tileNumbers array
             var nonProductiveIdx = [];
@@ -1027,7 +1027,7 @@ CatanMap.prototype.generate = function() {
                     }
                 } while (invalid);
                 tileCoordinates = tileCoordinates.concat(tmpCoords);
-            } else if (newHexTile.isNonProductive() && ($('input[name=preventAjacentLowNumbers]:checked').val() == "avoid")) {
+            } else if (newHexTile.isNonProductive() && ($('input[name=preventAdjacentLowNumbers]:checked').val() == "avoid")) {
                 var tmpCoords = [];
                 do {
                     newCoords = tileCoordinates.random(true);
