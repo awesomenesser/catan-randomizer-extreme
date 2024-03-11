@@ -22,7 +22,7 @@
 </head>
 
 <body>
-    <div class="col-sm-3">
+    <div class="col-xs-2">
         <h1 class="text-center">Extreme Catan Map Generator</h1>
         <p class="text-center">Created by <a href="http://www.jaredkirschner.com">Jared Kirschner</a>. Modified by <a href="http://github.com/ragib06">Ragib Ahsan</a>, <a href="http://github.com/matheusfavieira">Matheus Vieira</a>, and  <a href="http://github.com/awesomenesser">Robert Givens</a></p>
         <div class="panel panel-default">
@@ -106,10 +106,55 @@
                         </label>
                     </div>
                 </li>
+                <!-- <li class="list-group-item">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="desertAvoidCoast" value="avoid" checked>
+                            Keep desert tiles away from the coast
+                        </label>
+                    </div>
+                </li> -->
+                <li class="list-group-item">
+                    <strong>Other options:</strong>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="preventAjacentLowNumbers" value="avoid" checked>
+                            Prevent ajacent low probablility numbers (2 and 12)
+                        </label>
+                    </div>
+                </li>
             </ul>
         </div>
 
         <button class="btn btn-sm btn-block btn-primary" id="gen-map-button" disabled>Loading lands...</button>
+
+        <p class="text-center"></p>
+
+        <!-- <div class="panel panel-default">
+            <div class="panel-heading">Statistics:</div>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    Total probablility brick: 
+                    <strong></strong>
+                </li>
+                <li class="list-group-item">
+                    Total probablility lumber: 
+                    <strong></strong>
+                </li>
+                <li class="list-group-item">
+                    Total probablility ore: 
+                    <strong></strong>
+                </li>
+                <li class="list-group-item">
+                    Total probablility grain: 
+                    <strong></strong>
+                </li>
+                <li class="list-group-item">
+                    Total probablility wool: 
+                    <strong></strong>
+                </li>
+            </ul>
+        </div> -->
 
         <div class="font_preload" style="opacity: 0">
             <!-- Used to trick the brower into preloading the font so it will be ready when the generator needs it -->
@@ -118,7 +163,7 @@
         </div>
     </div>
     
-    <div class="col-sm-9 map-container" id="map-container"></div>
+    <div class="col-xs-10 map-container" id="map-container"></div>
 
     <!-- Use this line if you need to run locally -->
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> -->
