@@ -1260,7 +1260,7 @@ HexTile.prototype.drawBase = function() {
         drawingContext.fillStyle = "rgba(255,255,255,0)";
         drawingContext.strokeStyle = "#FAEB96";
     } else if (mapStyle == "new") {
-        drawingContext.lineWidth = 1;
+        drawingContext.lineWidth = 3;
         drawingContext.fillStyle = "rgba(255,255,255,0)";
         drawingContext.strokeStyle = "rgba(227, 221, 150, 255)";
     } else {
@@ -1311,6 +1311,16 @@ HexTile.prototype.drawBase = function() {
             2 * size,
             2 * dy
         );
+        
+        // Place a tile down rotated 30 degrees (will be used for dock placement)
+        // drawingContext.save(); // Save the current state of the drawing context
+        // drawingContext.translate(this.xCenter - size, this.yCenter); // Translate to the middle of the left side
+        // drawingContext.rotate(Math.PI / 6); // Rotate by 30 degrees (30 degrees = Math.PI / 6 radians)
+        // drawingContext.drawImage(
+        //     imgCanvas,
+        //     0, -dy, 2 * size, 2 * dy // Draw the rotated image
+        // );
+        // drawingContext.restore(); // Restore the previous state of the drawing context
 
     } else {
         drawingContext.fill();
