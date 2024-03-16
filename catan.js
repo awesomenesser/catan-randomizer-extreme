@@ -39,13 +39,23 @@ var newResourceTypeToImageCanvas = {
     "grain": null,
     "desert": null
 };
+var dockTypeToImageCanvas = {
+    "oredock": null,
+    "claydock": null,
+    "wooldock": null,
+    "wooddock": null,
+    "graindock": null,
+    "tripledock": null
+};
 
 //var allImagesLoaded = false;
 
 // ----- Grid layout globals -----
 
-var dx = size * (1 + Math.cos(Math.PI / 3)) / 2;
-var dy = size * Math.sin(Math.PI / 3);
+const xHexVal = (1 + Math.cos(Math.PI / 3)) / 2;
+const yHexVal = Math.sin(Math.PI / 3);
+var dx = size * xHexVal;
+var dy = size * yHexVal;
 
 /*
  * Formula:
@@ -722,6 +732,7 @@ expandedTripleWideMap.coordinatesArray = [
     // [12, 2],
     // [12, 0]
 ];
+
 // ----- FUNCTIONS -----
 
 window.onresize = function(event) {
@@ -731,26 +742,21 @@ window.onresize = function(event) {
 }
 
 function init() {
-
     loadImages(function() {
         var button = $('button#gen-map-button')[0];
         $(button).click(generate);
         button.disabled = false;
         button.innerHTML = "GENERATE A NEW MAP";
     });
-
     addCanvas();
-
 }
 
 function preloadImages(arr, callback) {
     //http://www.javascriptkit.com/javatutors/preloadimagesplus.shtml
-
     var newimages = [],
         loadedimages = 0;
     var postaction = function() {};
     var arr = (typeof arr != "object") ? [arr] : arr;
-
     function imageloadpost() {
         loadedimages++;
         if (loadedimages == arr.length) {
@@ -767,20 +773,17 @@ function preloadImages(arr, callback) {
             imageloadpost();
         }
     }
-
 }
 
 function loadImages(callback) {
-
+    // Import retro tile images
     var rTypes = [];
     var imgPaths = [];
     for (var key in resourceTypeToImageCanvas) {
         rTypes.push(key);
         imgPaths.push("images/" + key + ".png");
     }
-
     preloadImages(imgPaths, function(images) {
-
         for (var i = 0; i < imgPaths.length; i += 1) {
             //resourceTypeToImage[ rTypes[i] ] = images[i];
             var img = images[i];
@@ -793,22 +796,19 @@ function loadImages(callback) {
 
             resourceTypeToImageCanvas[rTypes[i]] = imgCanvas;
         }
-
         callback();
-
     });
 
-    rTypes = [];
-    imgPaths = [];
+    // Import new tile images
+    var nrTypes = [];
+    nrImgPaths = [];
     for (var key in newResourceTypeToImageCanvas) {
-        rTypes.push(key);
-        imgPaths.push("images/new" + key + ".png");
+        nrTypes.push(key);
+        nrImgPaths.push("images/new" + key + ".png");
     }
-
-    preloadImages(imgPaths, function(images) {
-
-        for (var i = 0; i < imgPaths.length; i += 1) {
-            //newResourceTypeToImage[ rTypes[i] ] = images[i];
+    preloadImages(nrImgPaths, function(images) {
+        for (var i = 0; i < nrImgPaths.length; i += 1) {
+            //newResourceTypeToImage[nrTypes[i]] = images[i];
             var img = images[i];
             var imgCanvas = document.createElement("canvas");
             var imgContext = imgCanvas.getContext("2d");
@@ -817,16 +817,36 @@ function loadImages(callback) {
             imgCanvas.height = img.height;
             imgContext.drawImage(img, 0, 0);
 
-            newResourceTypeToImageCanvas[rTypes[i]] = imgCanvas;
+            newResourceTypeToImageCanvas[nrTypes[i]] = imgCanvas;
         }
-
         callback();
+    });
 
+    // Import dock tile images
+    var dTypes = [];
+    var dImgPaths = [];
+    for (var key in dockTypeToImageCanvas) {
+        dTypes.push(key);
+        dImgPaths.push("images/" + key + ".png");
+    }
+    preloadImages(dImgPaths, function(images) {
+        for (var i = 0; i < dImgPaths.length; i += 1) {
+            //newResourceTypeToImage[dTypes[i]] = images[i];
+            var img = images[i];
+            var imgCanvas = document.createElement("canvas");
+            var imgContext = imgCanvas.getContext("2d");
+
+            imgCanvas.width = img.width;
+            imgCanvas.height = img.height;
+            imgContext.drawImage(img, 0, 0);
+
+            dockTypeToImageCanvas[dTypes[i]] = imgCanvas;
+        }
+        callback();
     });
 }
 
 function generate() {
-
     var mapDef;
     switch ($("input:radio['name=game-type']:checked").val()) {
         case "expanded":
@@ -868,7 +888,6 @@ function generate() {
 
     catanMap.resize();
     catanMap.draw();
-
 }
 
 function MapDefinition() {
@@ -876,6 +895,7 @@ function MapDefinition() {
     this.numberDict = null;
     this.coordinatesArray = null;
 }
+
 MapDefinition.prototype.checkValidity = function() {
     var cArrLen = this.coordinatesArray.length;
     var rDictLen = this.sumDictVals(this.resourceDict);
@@ -885,6 +905,7 @@ MapDefinition.prototype.checkValidity = function() {
     // Allow the field to be smaller than the number of available tiles
     return (cArrLen <= rDictLen) && (rDictLen == (nDictLen + numDeserts));
 }
+
 MapDefinition.prototype.sumDictVals = function(dict) {
     var sum = 0;
     for (var key in dict) {
@@ -894,15 +915,13 @@ MapDefinition.prototype.sumDictVals = function(dict) {
 }
 
 function CatanMap() {
-
     this.mapDefinition = null;
     this.hexTiles = null;
     this.coordToTile = {};
     this.coordSpan = [0, 0];
-
 }
-CatanMap.prototype.defineMap = function(mapDefinition) {
 
+CatanMap.prototype.defineMap = function(mapDefinition) {
     if (mapDefinition.checkValidity()) {
 
         this.mapDefinition = mapDefinition;
@@ -931,8 +950,8 @@ CatanMap.prototype.defineMap = function(mapDefinition) {
         console.log("Invalid map definition.");
     }
 }
-CatanMap.prototype.generate = function() {
 
+CatanMap.prototype.generate = function() {
     this.coordToTile = {};
 
     if (this.mapDefinition) {
@@ -1006,7 +1025,6 @@ CatanMap.prototype.generate = function() {
 
         // Handle all other tiles
         for (var i = 0; i < (numTiles - numDeserts); i += 1) {
-
             var newHexTile = new HexTile();
             newHexTile.setNumber(tileNumbers[i]);
             newHexTile.setResourceType(tileTypes.random(true));
@@ -1068,55 +1086,48 @@ CatanMap.prototype.generate = function() {
             this.hexTiles.push(newHexTile);
             this.coordToTile[newCoords.toString()] = newHexTile;
         } // end for loop
-
         return false;
-
     } else {
-
         console.log("No map definition.");
         return false;
     }
-
 }
-CatanMap.prototype.draw = function() {
 
+CatanMap.prototype.draw = function() {
     if (this.hexTiles) {
         drawingContext.clear();
         for (var i = 0; i < this.hexTiles.length; i += 1) {
             this.hexTiles[i].draw();
         }
     }
-
 }
+
 CatanMap.prototype.resize = function() {
     /* Size = Height / ( (coordSpacing + 2) * Math.sin(Math.PI/3) )
      * Size = Width / ( (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2) + 2 )
      */
     var wSize = (mapCanvas.width - 10) /
-        (((this.coordSpan[0] + 3)* (1 + Math.cos(Math.PI / 3)) / 2));
+        (((this.coordSpan[0] + 3)* xHexVal));
     var hSize = (mapCanvas.height - 10) /
-        ((this.coordSpan[1] + 3) * Math.sin(Math.PI / 3));
+        ((this.coordSpan[1] + 3) * yHexVal);
     size = Math.floor(Math.min(wSize, hSize));
-    dx = size * (1 + Math.cos(Math.PI / 3)) / 2;
+    dx = size * xHexVal;
     dy = size * Math.sin(Math.PI / 3);
 
     console.log("Resize1: W:" + wSize + ", H:" + hSize + ", S:" + size + ", X:" + dx + ", Y:" + dy);
-    console.log("Resize2: CS0:" + this.coordSpan[0] + ", CS1:" + this.coordSpan[1] + ", wTrg:" + (1 + Math.cos(Math.PI / 3)) / 2 + ", hTrg:" + Math.sin(Math.PI / 3));
+    console.log("Resize2: CS0:" + this.coordSpan[0] + ", CS1:" + this.coordSpan[1] + ", wTrg:" + (1 + Math.cos(Math.PI / 3)) / 2 + ", hTrg:" + yHexVal);
 }
-CatanMap.prototype.getAdjacentTiles = function(tile) {
 
-    var tileX = tile.gridX;
-    var tileY = tile.gridY;
-
+CatanMap.prototype.getAdjacentTilesByCoords = function(x, y) {
     var adjTiles = [];
 
     // (+0,+2), (+2,+1), (+2,-1), (+0,-2), (-2,-1), (-2,1)
-    xshift = [0, 2, 2, 0, -2, -2];
-    yshift = [2, 1, -1, -2, -1, 1];
+    var xshift = [0, 2, 2, 0, -2, -2];
+    var yshift = [2, 1, -1, -2, -1, 1];
 
     for (var i = 0; i < 6; i += 1) {
         var adjTile = this.coordToTile[
-            [tileX + xshift[i], tileY + yshift[i]].toString()
+            [x + xshift[i], y + yshift[i]].toString()
         ];
         // Will be null if no hex tile found at that coordinate
         if (adjTile) {
@@ -1125,7 +1136,13 @@ CatanMap.prototype.getAdjacentTiles = function(tile) {
     }
 
     return adjTiles;
+}
 
+CatanMap.prototype.getAdjacentTiles = function(tile) {
+    var tileX = tile.gridX;
+    var tileY = tile.gridY;
+
+    return this.getAdjacentTilesByCoords(tileX, tileY);
 }
 
 CatanMap.prototype.hasHighlyProductiveNeighbors = function(tile) {
@@ -1218,10 +1235,15 @@ function HexTile() {
     this.fillStyle = defaultFillStyle;
     this.number;
 }
+
 HexTile.prototype.strokeStyle = strokeStyle;
+
 HexTile.prototype.lineWidth = lineWidth;
+
 HexTile.prototype.hexColorMap = resourceTypeToColor;
+
 HexTile.prototype.size = size;
+
 HexTile.prototype.setResourceType = function(resourceType) {
     if (this.hexColorMap[resourceType]) {
         this.resourceType = resourceType;
@@ -1230,19 +1252,24 @@ HexTile.prototype.setResourceType = function(resourceType) {
         console.log("Unrecognized resource type:", resourceType);
     }
 }
+
 HexTile.prototype.isHighlyProductive = function() {
     return ((this.number == 6) || (this.number == 8));
 }
+
 HexTile.prototype.isNonProductive = function() {
     return ((this.number == 2) || (this.number == 12));
 }
+
 HexTile.prototype.setNumber = function(number) {
     this.number = number;
 }
+
 HexTile.prototype.setCoordinate = function(x, y) {
     this.gridX = x;
     this.gridY = y;
 }
+
 HexTile.prototype.draw = function() {
     this.xCenter = canvasCenterX + dx * this.gridX;
     this.yCenter = canvasCenterY + dy * this.gridY;
@@ -1253,6 +1280,7 @@ HexTile.prototype.draw = function() {
         this.drawNumber();
     }
 }
+
 HexTile.prototype.drawBase = function() {
 
     if (mapStyle == "retro") {
@@ -1303,18 +1331,21 @@ HexTile.prototype.drawBase = function() {
             imgCanvas = newResourceTypeToImageCanvas[this.resourceType];
         }
 
-        drawingContext.drawImage(
-            imgCanvas,
-            0, 0, imgCanvas.width, imgCanvas.height,
-            this.xCenter - size,
-            this.yCenter - dy,
-            2 * size,
-            2 * dy
-        );
+        if (imgCanvas != null)
+        {
+            drawingContext.drawImage(
+                imgCanvas,
+                0, 0, imgCanvas.width, imgCanvas.height,
+                this.xCenter - size,
+                this.yCenter - dy,
+                2 * size,
+                2 * dy
+            );
+        }
         
         // Place a tile down rotated 30 degrees (will be used for dock placement)
         // drawingContext.save(); // Save the current state of the drawing context
-        // drawingContext.translate(this.xCenter - size, this.yCenter); // Translate to the middle of the left side
+        // drawingContext.translate(this.xCenter - dy, this.yCenter - size/2); // Translate to the middle of the left side
         // drawingContext.rotate(Math.PI / 6); // Rotate by 30 degrees (30 degrees = Math.PI / 6 radians)
         // drawingContext.drawImage(
         //     imgCanvas,
@@ -1327,10 +1358,9 @@ HexTile.prototype.drawBase = function() {
     }
 
     drawingContext.stroke();
-
 }
-HexTile.prototype.drawNumber = function() {
 
+HexTile.prototype.drawNumber = function() {
     drawingContext.fillStyle = "rgba(227, 221, 150, 255)";//"#FFFFFF";
     drawingContext.strokeStyle = "rgba(113, 110, 75, 128)";//"#000000";
     drawingContext.lineWidth = size * 0.02;
@@ -1371,7 +1401,6 @@ HexTile.prototype.drawNumber = function() {
         drawingContext.closePath();
         drawingContext.fill();
     }
-
 }
 
 Array.prototype.random = function(removeElem) {
@@ -1382,9 +1411,11 @@ Array.prototype.random = function(removeElem) {
     }
     return val;
 }
+
 Array.prototype.copy = function() {
     return this.slice();
 }
+
 Array.prototype.indexOfArray = function(val) {
     var arr = [];
     var sIdx = 0;
@@ -1400,6 +1431,7 @@ Array.prototype.indexOfArray = function(val) {
     } while (valid);
     return arr;
 }
+
 Array.prototype.swap = function(idx1, idx2) {
     var tmp = this[idx1];
     this[idx1] = this[idx2];
@@ -1416,7 +1448,6 @@ function addCanvas() {
     sizeCanvas();
 
     document.getElementById("map-container").appendChild(mapCanvas);
-
 }
 
 function sizeCanvas() {
@@ -1428,16 +1459,15 @@ function sizeCanvas() {
 }
 
 // http://stackoverflow.com/questions/2142535/how-to-clear-the-canvas-for-redrawing
-CanvasRenderingContext2D.prototype.clear =
-    CanvasRenderingContext2D.prototype.clear || function(preserveTransform) {
-        if (preserveTransform) {
-            this.save();
-            this.setTransform(1, 0, 0, 1, 0, 0);
-        }
+CanvasRenderingContext2D.prototype.clear = CanvasRenderingContext2D.prototype.clear || function(preserveTransform) {
+    if (preserveTransform) {
+        this.save();
+        this.setTransform(1, 0, 0, 1, 0, 0);
+    }
 
-        this.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        if (preserveTransform) {
-            this.restore();
-        }
-    };
+    if (preserveTransform) {
+        this.restore();
+    }
+};
