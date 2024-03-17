@@ -1,16 +1,29 @@
-// ----- Canvas globals -----
+//=====================================================================================================================
+// Globals
+//=====================================================================================================================
+// Hexagon Formulas:
+// Height = (coordSpacing + 2) * dy
+//        = (coordSpacing + 2) * Math.sin(Math.PI/3) * size
+// Size = Height / ( (coordSpacing + 2) * Math.sin(Math.PI/3) )
+// Width = (coordSpacing * dx) + (2 * size)
+//       = (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2 * size) + (2 * size)
+//       = ( (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2) + 2 ) * size
+// Size = Width / ( (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2) + 2 )
+
+var size = null;
+const hexWidthVal = (1 + Math.cos(Math.PI / 3)) / 2;
+const hexHeightVal = Math.sin(Math.PI / 3);
+var dx = size * hexWidthVal;
+var dy = size * hexHeightVal;
 
 var mapCanvas;
 var drawingContext;
-
 var canvasCenterX;
 var canvasCenterY;
 
-// ----- Hexagon drawing parameters -----
+var catanMap = new CatanMap();
 
 var mapStyle = "new";
-
-var size = null;
 var defaultFillStyle = "#ffffff";
 var strokeStyle = "#000000";
 var lineWidth = 3;
@@ -23,6 +36,10 @@ var resourceTypeToColor = {
     "desert": "#F2F0A0",
     "none": "#ffffff"
 };
+
+//=====================================================================================================================
+// Image preload arrays
+//=====================================================================================================================
 var resourceTypeToImageCanvas = {
     "ore": null,
     "clay": null,
@@ -31,6 +48,7 @@ var resourceTypeToImageCanvas = {
     "grain": null,
     "desert": null
 };
+
 var newResourceTypeToImageCanvas = {
     "ore": null,
     "clay": null,
@@ -39,6 +57,7 @@ var newResourceTypeToImageCanvas = {
     "grain": null,
     "desert": null
 };
+
 var dockTypeToImageCanvas = {
     "oredock": null,
     "claydock": null,
@@ -48,31 +67,10 @@ var dockTypeToImageCanvas = {
     "tripledock": null
 };
 
-//var allImagesLoaded = false;
-
-// ----- Grid layout globals -----
-
-const xHexVal = (1 + Math.cos(Math.PI / 3)) / 2;
-const yHexVal = Math.sin(Math.PI / 3);
-var dx = size * xHexVal;
-var dy = size * yHexVal;
-
-/*
- * Formula:
- *
- * Height = (coordSpacing + 2) * dy
- *        = (coordSpacing + 2) * Math.sin(Math.PI/3) * size
- * Size = Height / ( (coordSpacing + 2) * Math.sin(Math.PI/3) )
- *
- * Width = (coordSpacing * dx) + (2 * size)
- *       = (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2 * size) + (2 * size)
- *       = ( (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2) + 2 ) * size
- * Size = Width / ( (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2) + 2 )
- */
-
-// ----- Map definition globals -----
-
-var catanMap = new CatanMap();
+//=====================================================================================================================
+// Map Arrays
+//=====================================================================================================================
+//#region Map Arrays
 
 var normalMap = new MapDefinition();
 normalMap.resourceDict = {
@@ -82,6 +80,14 @@ normalMap.resourceDict = {
     "wool": 4,
     "grain": 4,
     "ore": 3
+};
+normalMap.dockDict = {
+    "wooddock": 1,
+    "claydock": 1,
+    "wooldock": 1,
+    "graindock": 1,
+    "oredock": 1,
+    "tripledock": 4
 };
 normalMap.numberDict = {
     2: 1,
@@ -96,25 +102,25 @@ normalMap.numberDict = {
     12: 1
 }
 normalMap.coordinatesArray = [
-    [-4, 2],
-    [-4, 0],
     [-4, -2],
-    [-2, 3],
-    [-2, 1],
-    [-2, -1],
+    [-4, 0],
+    [-4, 2],
     [-2, -3],
-    [0, 4],
-    [0, 2],
-    [0, 0],
-    [0, -2],
+    [-2, -1],
+    [-2, 1],
+    [-2, 3],
     [0, -4],
-    [2, 3],
-    [2, 1],
-    [2, -1],
+    [0, -2],
+    [0, 0],
+    [0, 2],
+    [0, 4],
     [2, -3],
-    [4, 2],
+    [2, -1],
+    [2, 1],
+    [2, 3],
+    [4, -2],
     [4, 0],
-    [4, -2]
+    [4, 2]
 ];
 
 var expandedMap = new MapDefinition();
@@ -126,6 +132,14 @@ expandedMap.resourceDict = {
     "grain": 6,
     "ore": 5
 }
+expandedMap.dockDict = {
+    "wooddock": 1,
+    "claydock": 1,
+    "wooldock": 2,
+    "graindock": 1,
+    "oredock": 1,
+    "tripledock": 5
+};
 expandedMap.numberDict = {
     2: 2,
     3: 3,
@@ -139,36 +153,36 @@ expandedMap.numberDict = {
     12: 2
 }
 expandedMap.coordinatesArray = [
-    [-6, 2],
-    [-6, 0],
     [-6, -2],
-    [-4, 3],
-    [-4, 1],
-    [-4, -1],
+    [-6, 0],
+    [-6, 2],
     [-4, -3],
-    [-2, 4],
-    [-2, 2],
-    [-2, 0],
-    [-2, -2],
+    [-4, -1],
+    [-4, 1],
+    [-4, 3],
     [-2, -4],
-    [0, 5],
-    [0, 3],
-    [0, 1],
-    [0, -1],
-    [0, -3],
+    [-2, -2],
+    [-2, 0],
+    [-2, 2],
+    [-2, 4],
     [0, -5],
-    [2, 4],
-    [2, 2],
-    [2, 0],
-    [2, -2],
+    [0, -3],
+    [0, -1],
+    [0, 1],
+    [0, 3],
+    [0, 5],
     [2, -4],
-    [4, 3],
-    [4, 1],
-    [4, -1],
+    [2, -2],
+    [2, 0],
+    [2, 2],
+    [2, 4],
     [4, -3],
-    [6, 2],
+    [4, -1],
+    [4, 1],
+    [4, 3],
+    [6, -2],
     [6, 0],
-    [6, -2]    
+    [6, 2]
 ];
 
 var doubleMap = new MapDefinition();
@@ -180,6 +194,14 @@ doubleMap.resourceDict = {
     "grain": 8,
     "ore": 6
 }
+doubleMap.dockDict = {
+    "wooddock": 2,
+    "claydock": 2,
+    "wooldock": 2,
+    "graindock": 2,
+    "oredock": 2,
+    "tripledock": 8
+};
 doubleMap.numberDict = {
     2: 2,
     3: 4,
@@ -193,44 +215,43 @@ doubleMap.numberDict = {
     12: 2
 }
 doubleMap.coordinatesArray = [
-    [-6, 3],
-    [-6, 1],
-    [-6, -1],
     [-6, -3],
-    [-4, 4],
-    [-4, 2],
-    [-4, 0],
-    [-4, -2],
+    [-6, -1],
+    [-6, 1],
+    [-6, 3],
     [-4, -4],
-    [-2, 5],
-    [-2, 3],
-    [-2, 1],
-    [-2, -1],
-    [-2, -3],
+    [-4, -2],
+    [-4, 0],
+    [-4, 2],
+    [-4, 4],
     [-2, -5],
-    [0, 6],
-    [0, 4],
-    [0, 2],
-    [0, 0],
-    [0, -2],
-    [0, -4],
+    [-2, -3],
+    [-2, -1],
+    [-2, 1],
+    [-2, 3],
+    [-2, 5],
     [0, -6],
-    [2, 5],
-    [2, 3],
-    [2, 1],
-    [2, -1],
-    [2, -3],
+    [0, -4],
+    [0, -2],
+    [0, 0],
+    [0, 2],
+    [0, 4],
+    [0, 6],
     [2, -5],
-    [4, 4],
-    [4, 2],
-    [4, 0],
-    [4, -2],
+    [2, -3],
+    [2, -1],
+    [2, 1],
+    [2, 3],
+    [2, 5],
     [4, -4],
-    [6, 3],
-    [6, 1],
-    [6, -1],
+    [4, -2],
+    [4, 0],
+    [4, 2],
+    [4, 4],
     [6, -3],
-    //[8, -2]
+    [6, -1],
+    [6, 1],
+    [6, 3]
 ];
 
 var doublePeanutMap = new MapDefinition();
@@ -242,6 +263,14 @@ doublePeanutMap.resourceDict = {
     "grain": 8,
     "ore": 6
 }
+doublePeanutMap.dockDict = {
+    "wooddock": 2,
+    "claydock": 2,
+    "wooldock": 2,
+    "graindock": 2,
+    "oredock": 2,
+    "tripledock": 8
+};
 doublePeanutMap.numberDict = {
     2: 2,
     3: 4,
@@ -255,82 +284,44 @@ doublePeanutMap.numberDict = {
     12: 2
 }
 doublePeanutMap.coordinatesArray = [
-    // [-10, 2],
-    // [-10, 0],
-    // [-10, -2],
-    // [-8, 3],
-    // [-8, 1],
-    // [-8, -1],
-    // [-8, -3],
-    // [-6, 4],
-    // [-6, 2],
-    // [-6, 0],
-    // [-6, -2],
-    // [-6, -4],
-    // [-4, 3],
-    // [-4, 1],
-    // [-4, -1],
-    // [-4, -3],
-    // [-2, 2],
-    // [-2, 0],
-    // [-2, -2],
-    // [0, 3],
-    // [0, 1],
-    // [0, -1],
-    // [2, 4],
-    // [2, 2],
-    // [2, 0],
-    // [2, -2],
-    // [4, 5],
-    // [4, 3],
-    // [4, 1],
-    // [4, -1],
-    // [4, -3],
-    // [6, 4],
-    // [6, 2],
-    // [6, 0],
-    // [6, -2],
-    // [8, 3],
-    // [8, 1],
-    // [8, -1]
-    [-8, -1],
-    [-8, -3],
-    [-8, -5],
+    [-8, 1],
+    [-8, 3],
+    [-8, 5],
     [-6, 0],
-    [-6, -2],
-    [-6, -4],
-    [-6, -6],
-    [-4, 1],
+    [-6, 2],
+    [-6, 4],
+    [-6, 6],
     [-4, -1],
-    [-4, -3],
-    [-4, -5],
-    [-4, -7],
+    [-4, 1],
+    [-4, 3],
+    [-4, 5],
+    [-4, 7],
     [-2, 0],
-    [-2, -2],
-    [-2, -4],
-    [-2, -6],
-    [0, 5],
-    [0, 3],
-    [0, 1],
-    [0, -1],
-    [0, -3],
+    [-2, 2],
+    [-2, 4],
+    [-2, 6],
     [0, -5],
-    [2, 6],
-    [2, 4],
-    [2, 2],
+    [0, -3],
+    [0, -1],
+    [0, 1],
+    [0, 3],
+    [0, 5],
+    [2, -6],
+    [2, -4],
+    [2, -2],
     [2, 0],
-    [4, 7],
-    [4, 5],
-    [4, 3],
-    [4, 1],
+    [4, -7],
+    [4, -5],
+    [4, -3],
     [4, -1],
-    [6, 6],
-    [6, 4],
-    [6, 2],
+    [4, 1],
+    [6, -6],
+    [6, -4],
+    [6, -2],
     [6, 0],
-    [8, 5],
-    [8, 3],
-    [8, 1]
+    [8, -5],
+    [8, -3],
+    [8, -1]
 ];
 
 var expandedDoubleMap = new MapDefinition();
@@ -342,6 +333,14 @@ expandedDoubleMap.resourceDict = {
     "grain": 10,
     "ore": 8
 }
+expandedDoubleMap.dockDict = {
+    "wooddock": 2,
+    "claydock": 2,
+    "wooldock": 3,
+    "graindock": 2,
+    "oredock": 2,
+    "tripledock": 9
+};
 expandedDoubleMap.numberDict = {
     2: 3,
     3: 5,
@@ -355,55 +354,55 @@ expandedDoubleMap.numberDict = {
     12: 3
 }
 expandedDoubleMap.coordinatesArray = [
-    [-8, 2],
-    [-8, 0],
     [-8, -2],
-    [-8, -4],
-    [-6, 3],
-    [-6, 1],
-    [-6, -1],
+    [-8, 0],
+    [-8, 2],
+    [-8, 4],
     [-6, -3],
-    [-6, -5],
-    [-4, 4],
-    [-4, 2],
-    [-4, 0],
-    [-4, -2],
+    [-6, -1],
+    [-6, 1],
+    [-6, 3],
+    [-6, 5],
     [-4, -4],
-    [-4, -6],
-    [-2, 5],
-    [-2, 3],
-    [-2, 1],
-    [-2, -1],
-    [-2, -3],
+    [-4, -2],
+    [-4, 0],
+    [-4, 2],
+    [-4, 4],
+    [-4, 6],
     [-2, -5],
-    [0, 6],
-    [0, 4],
-    [0, 2],
-    [0, 0],
-    [0, -2],
-    [0, -4],
+    [-2, -3],
+    [-2, -1],
+    [-2, 1],
+    [-2, 3],
+    [-2, 5],
     [0, -6],
-    [2, 5],
-    [2, 3],
-    [2, 1],
-    [2, -1],
-    [2, -3],
+    [0, -4],
+    [0, -2],
+    [0, 0],
+    [0, 2],
+    [0, 4],
+    [0, 6],
     [2, -5],
-    [4, 6],
-    [4, 4],
-    [4, 2],
-    [4, 0],
-    [4, -2],
+    [2, -3],
+    [2, -1],
+    [2, 1],
+    [2, 3],
+    [2, 5],
+    [4, -6],
     [4, -4],
-    [6, 5],
-    [6, 3],
-    [6, 1],
-    [6, -1],
+    [4, -2],
+    [4, 0],
+    [4, 2],
+    [4, 4],
+    [6, -5],
     [6, -3],
-    [8, 4],
-    [8, 2],
+    [6, -1],
+    [6, 1],
+    [6, 3],
+    [8, -4],
+    [8, -2],
     [8, 0],
-    [8, -2]
+    [8, 2]
 ]
 
 var expandedDoublePeanutMap = new MapDefinition();
@@ -415,6 +414,14 @@ expandedDoublePeanutMap.resourceDict = {
     "grain": 10,
     "ore": 8
 }
+expandedDoublePeanutMap.dockDict = {
+    "wooddock": 2,
+    "claydock": 2,
+    "wooldock": 3,
+    "graindock": 2,
+    "oredock": 2,
+    "tripledock": 9
+};
 expandedDoublePeanutMap.numberDict = {
     2: 3,
     3: 5,
@@ -428,59 +435,140 @@ expandedDoublePeanutMap.numberDict = {
     12: 3
 }
 expandedDoublePeanutMap.coordinatesArray = [
-    [-10, 3],
-    [-10, 1],
     [-10, -1],
-    [-10, -3],
-    [-8, 4],
-    [-8, 2],
-    [-8, 0],
+    [-10, 1],
+    [-10, 3],
+    [-10, 5],
     [-8, -2],
-    [-8, -4],
-    [-6, 5],
-    [-6, 3],
-    [-6, 1],
-    [-6, -1],
+    [-8, 0],
+    [-8, 2],
+    [-8, 4],
+    [-8, 6],
     [-6, -3],
-    [-4, 4],
-    [-4, 2],
-    [-4, 0],
+    [-6, -1],
+    [-6, 1],
+    [-6, 3],
+    [-6, 5],
     [-4, -2],
-    [-4, -4],
-    [-2, 3],
-    [-2, 1],
+    [-4, 0],
+    [-4, 2],
+    [-4, 4],
+    [-4, 6],
     [-2, -1],
-    [-2, -3],
-    [0, 2],
-    [0, 0],
+    [-2, 1],
+    [-2, 3],
+    [-2, 5],
     [0, -2],
-    [2, 3],
-    [2, 1],
-    [2, -1],
+    [0, 0],
+    [0, 2],
+    [2, -5],
     [2, -3],
-    [4, 4],
-    [4, 2],
-    [4, 0],
-    [4, -2],
+    [2, -1],
+    [2, 1],
+    [4, -6],
     [4, -4],
-    [6, 3],
-    [6, 1],
-    [6, -1],
-    [6, -3],
+    [4, -2],
+    [4, 0],
+    [4, 2],
     [6, -5],
-    [8, 4],
-    [8, 2],
-    [8, 0],
-    [8, -2],
+    [6, -3],
+    [6, -1],
+    [6, 1],
+    [6, 3],
+    [8, -6],
     [8, -4],
-    [10, 3],
-    [10, 1],
+    [8, -2],
+    [8, 0],
+    [8, 2],
+    [10, -5],
+    [10, -3],
     [10, -1],
-    [10, -3]
+    [10, 1]
 ];
 
-var tripleMap = new MapDefinition();
-tripleMap.resourceDict = {
+var expandedDoubleWideMap = new MapDefinition();
+expandedDoubleWideMap.resourceDict = {
+    "desert": 3,
+    "wood": 10,
+    "clay": 8,
+    "wool": 10,
+    "grain": 10,
+    "ore": 8
+}
+expandedDoubleWideMap.dockDict = {
+    "wooddock": 2,
+    "claydock": 2,
+    "wooldock": 3,
+    "graindock": 2,
+    "oredock": 2,
+    "tripledock": 9
+};
+expandedDoubleWideMap.numberDict = {
+    2: 3,
+    3: 5,
+    4: 5,
+    5: 5,
+    6: 5,
+    8: 5,
+    9: 5,
+    10: 5,
+    11: 5,
+    12: 3
+}
+expandedDoubleWideMap.coordinatesArray = [
+    [-10, 1],
+    [-10, 3],
+    [-10, 5],
+    [-8, 0],
+    [-8, 2],
+    [-8, 4],
+    [-8, 6],
+    [-6, -1],
+    [-6, 1],
+    [-6, 3],
+    [-6, 5],
+    [-6, 7],
+    [-4, -2],
+    [-4, 0],
+    [-4, 2],
+    [-4, 4],
+    [-4, 6],
+    [-2, -3],
+    [-2, -1],
+    [-2, 1],
+    [-2, 3],
+    [-2, 5],
+    [0, -4],
+    [0, -2],
+    [0, 0],
+    [0, 2],
+    [0, 4],
+    [2, -5],
+    [2, -3],
+    [2, -1],
+    [2, 1],
+    [2, 3],
+    [4, -6],
+    [4, -4],
+    [4, -2],
+    [4, 0],
+    [4, 2],
+    [6, -7],
+    [6, -5],
+    [6, -3],
+    [6, -1],
+    [6, 1],
+    [8, -6],
+    [8, -4],
+    [8, -2],
+    [8, 0],
+    [10, -5],
+    [10, -3],
+    [10, -1]
+];
+
+var triplePeanutMap = new MapDefinition();
+triplePeanutMap.resourceDict = {
     "desert": 3,
     "wood": 12,
     "clay": 9,
@@ -488,7 +576,15 @@ tripleMap.resourceDict = {
     "grain": 12,
     "ore": 9
 }
-tripleMap.numberDict = {
+triplePeanutMap.dockDict = {
+    "wooddock": 3,
+    "claydock": 3,
+    "wooldock": 3,
+    "graindock": 3,
+    "oredock": 3,
+    "tripledock": 12
+};
+triplePeanutMap.numberDict = {
     2: 3,
     3: 6,
     4: 6,
@@ -500,64 +596,64 @@ tripleMap.numberDict = {
     11: 6,
     12: 3
 }
-tripleMap.coordinatesArray = [
-    [-8, 4],
-    [-8, 2],
-    [-8, 0],
+triplePeanutMap.coordinatesArray = [
+    [-10, -1],
+    [-10, 1],
+    [-10, 3],
     [-8, -2],
-    [-8, -4],
-    [-6, 5],
-    [-6, 3],
-    [-6, 1],
-    [-6, -1],
+    [-8, 0],
+    [-8, 2],
+    [-8, 4],
+    [-8, 6],
     [-6, -3],
-    [-6, -5],
-    [-4, 6],
-    [-4, 4],
-    [-4, 2],
-    [-4, 0],
+    [-6, -1],
+    [-6, 1],
+    [-6, 3],
+    [-6, 5],
+    [-6, 7],
     [-4, -2],
-    [-4, -4],
-    [-4, -6],
-    [-2, 7],
-    [-2, 5],
-    [-2, 3],
-    [-2, 1],
+    [-4, 0],
+    [-4, 2],
+    [-4, 4],
+    [-4, 6],
+    [-4, 8],
     [-2, -1],
-    [-2, -3],
-    [-2, -5],
-    [0, 6],
-    [0, 4],
-    [0, 2],
-    [0, 0],
-    [0, -2],
-    [0, -4],
+    [-2, 1],
+    [-2, 3],
+    [-2, 5],
+    [-2, 7],
     [0, -6],
-    [2, 5],
-    [2, 3],
-    [2, 1],
-    [2, -1],
-    [2, -3],
-    [2, -5],
+    [0, -4],
+    [0, -2],
+    [0, 0],
+    [0, 2],
+    [0, 4],
+    [0, 6],
     [2, -7],
-    [4, 6],
-    [4, 4],
-    [4, 2],
-    [4, 0],
-    [4, -2],
-    [4, -4],
+    [2, -5],
+    [2, -3],
+    [2, -1],
+    [2, 1],
+    [4, -8],
     [4, -6],
-    [6, 5],
-    [6, 3],
-    [6, 1],
-    [6, -1],
-    [6, -3],
+    [4, -4],
+    [4, -2],
+    [4, 0],
+    [4, 2],
+    [6, -7],
     [6, -5],
-    [8, 4],
-    [8, 2],
-    [8, 0],
+    [6, -3],
+    [6, -1],
+    [6, 1],
+    [6, 3],
+    [8, -6],
+    [8, -4],
     [8, -2],
-    [8, -4]    
+    [8, 0],
+    [8, 2],
+    [10, -3],
+    [10, -1],
+    [10, 1]
 ];
 
 var tripleWideMap = new MapDefinition();
@@ -569,6 +665,14 @@ tripleWideMap.resourceDict = {
     "grain": 12,
     "ore": 9
 }
+tripleWideMap.dockDict = {
+    "wooddock": 3,
+    "claydock": 3,
+    "wooldock": 3,
+    "graindock": 3,
+    "oredock": 3,
+    "tripledock": 12
+};
 tripleWideMap.numberDict = {
     2: 3,
     3: 6,
@@ -583,62 +687,62 @@ tripleWideMap.numberDict = {
 }
 tripleWideMap.coordinatesArray = [
     [-10, 1],
-    [-10, -1],
-    [-10, -3],
-    [-8, 2],
-    [-8, 0],
+    [-10, 3],
     [-8, -2],
-    [-8, -4],
-    [-6, 3],
-    [-6, 1],
-    [-6, -1],
+    [-8, 0],
+    [-8, 2],
+    [-8, 4],
+    [-8, 6],
     [-6, -3],
-    [-6, -5],
-    [-4, 4],
-    [-4, 2],
-    [-4, 0],
-    [-4, -2],
+    [-6, -1],
+    [-6, 1],
+    [-6, 3],
+    [-6, 5],
+    [-6, 7],
     [-4, -4],
-    [-4, -6],
-    [-2, 5],
-    [-2, 3],
-    [-2, 1],
-    [-2, -1],
-    [-2, -3],
+    [-4, -2],
+    [-4, 0],
+    [-4, 2],
+    [-4, 4],
+    [-4, 6],
     [-2, -5],
-    [-2, -7],
-    [0, 6],
-    [0, 4],
-    [0, 2],
-    [0, 0],
-    [0, -2],
-    [0, -4],
+    [-2, -3],
+    [-2, -1],
+    [-2, 1],
+    [-2, 3],
+    [-2, 5],
     [0, -6],
-    [2, 7],
-    [2, 5],
-    [2, 3],
-    [2, 1],
-    [2, -1],
-    [2, -3],
+    [0, -4],
+    [0, -2],
+    [0, 0],
+    [0, 2],
+    [0, 4],
+    [0, 6],
     [2, -5],
-    [4, 6],
-    [4, 4],
-    [4, 2],
-    [4, 0],
-    [4, -2],
+    [2, -3],
+    [2, -1],
+    [2, 1],
+    [2, 3],
+    [2, 5],
+    [4, -6],
     [4, -4],
-    [6, 5],
-    [6, 3],
-    [6, 1],
-    [6, -1],
+    [4, -2],
+    [4, 0],
+    [4, 2],
+    [4, 4],
+    [6, -7],
+    [6, -5],
     [6, -3],
-    [8, 4],
-    [8, 2],
-    [8, 0],
+    [6, -1],
+    [6, 1],
+    [6, 3],
+    [8, -6],
+    [8, -4],
     [8, -2],
-    [10, 3],
-    [10, 1],
-    [10, -1]    
+    [8, 0],
+    [8, 2],
+    [10, -3],
+    [10, -1]
 ];
 
 var expandedTripleWideMap = new MapDefinition();
@@ -650,6 +754,14 @@ expandedTripleWideMap.resourceDict = {
     "grain": 14,
     "ore": 11
 }
+expandedTripleWideMap.dockDict = {
+    "wooddock": 3,
+    "claydock": 3,
+    "wooldock": 4,
+    "graindock": 3,
+    "oredock": 3,
+    "tripledock": 13
+};
 expandedTripleWideMap.numberDict = {
     2: 4,
     3: 7,
@@ -663,77 +775,78 @@ expandedTripleWideMap.numberDict = {
     12: 4
 }
 expandedTripleWideMap.coordinatesArray = [
-    [-10, 1],
     [-10, -1],
-    [-10, -3],
-    [-10, -5],
-    [-8, 2],
-    [-8, 0],
+    [-10, 1],
+    [-10, 3],
+    [-10, 5],
     [-8, -2],
-    [-8, -4],
-    [-8, -6],
-    [-6, 3],
-    [-6, 1],
-    [-6, -1],
+    [-8, 0],
+    [-8, 2],
+    [-8, 4],
+    [-8, 6],
     [-6, -3],
-    [-6, -5],
-    [-6, -7],
-    [-4, 4],
-    [-4, 2],
-    [-4, 0],
-    [-4, -2],
+    [-6, -1],
+    [-6, 1],
+    [-6, 3],
+    [-6, 5],
+    [-6, 7],
     [-4, -4],
-    [-4, -6],
-    [-4, -8],
-    [-2, 5],
-    [-2, 3],
-    [-2, 1],
-    [-2, -1],
-    [-2, -3],
+    [-4, -2],
+    [-4, 0],
+    [-4, 2],
+    [-4, 4],
+    [-4, 6],
+    [-4, 8],
     [-2, -5],
-    [-2, -7],
-    [0, 6],
-    [0, 4],
-    [0, 2],
-    [0, 0],
-    [0, -2],
-    [0, -4],
+    [-2, -3],
+    [-2, -1],
+    [-2, 1],
+    [-2, 3],
+    [-2, 5],
+    [-2, 7],
     [0, -6],
-    [2, 7],
-    [2, 5],
-    [2, 3],
-    [2, 1],
-    [2, -1],
-    [2, -3],
+    [0, -4],
+    [0, -2],
+    [0, 0],
+    [0, 2],
+    [0, 4],
+    [0, 6],
+    [2, -7],
     [2, -5],
-    [4, 8],
-    [4, 6],
-    [4, 4],
-    [4, 2],
-    [4, 0],
-    [4, -2],
+    [2, -3],
+    [2, -1],
+    [2, 1],
+    [2, 3],
+    [2, 5],
+    [4, -8],
+    [4, -6],
     [4, -4],
-    [6, 7],
-    [6, 5],
-    [6, 3],
-    [6, 1],
-    [6, -1],
+    [4, -2],
+    [4, 0],
+    [4, 2],
+    [4, 4],
+    [6, -7],
+    [6, -5],
     [6, -3],
-    [8, 6],
-    [8, 4],
-    [8, 2],
-    [8, 0],
+    [6, -1],
+    [6, 1],
+    [6, 3],
+    [8, -6],
+    [8, -4],
     [8, -2],
-    [10, 5],
-    [10, 3],
-    [10, 1],
+    [8, 0],
+    [8, 2],
+    [10, -5],
+    [10, -3],
     [10, -1],
-    // [12, 4],
-    // [12, 2],
-    // [12, 0]
+    [10, 1]
 ];
 
-// ----- FUNCTIONS -----
+//#endregion
+
+//=====================================================================================================================
+// Functions
+//=====================================================================================================================
 
 window.onresize = function(event) {
     sizeCanvas();
@@ -742,7 +855,7 @@ window.onresize = function(event) {
 }
 
 function init() {
-    loadImages(function() {
+    loadTileImages(function() {
         var button = $('button#gen-map-button')[0];
         $(button).click(generate);
         button.disabled = false;
@@ -775,7 +888,7 @@ function preloadImages(arr, callback) {
     }
 }
 
-function loadImages(callback) {
+function loadTileImages(callback) {
     // Import retro tile images
     var rTypes = [];
     var imgPaths = [];
@@ -785,7 +898,6 @@ function loadImages(callback) {
     }
     preloadImages(imgPaths, function(images) {
         for (var i = 0; i < imgPaths.length; i += 1) {
-            //resourceTypeToImage[ rTypes[i] ] = images[i];
             var img = images[i];
             var imgCanvas = document.createElement("canvas");
             var imgContext = imgCanvas.getContext("2d");
@@ -808,7 +920,6 @@ function loadImages(callback) {
     }
     preloadImages(nrImgPaths, function(images) {
         for (var i = 0; i < nrImgPaths.length; i += 1) {
-            //newResourceTypeToImage[nrTypes[i]] = images[i];
             var img = images[i];
             var imgCanvas = document.createElement("canvas");
             var imgContext = imgCanvas.getContext("2d");
@@ -831,7 +942,6 @@ function loadImages(callback) {
     }
     preloadImages(dImgPaths, function(images) {
         for (var i = 0; i < dImgPaths.length; i += 1) {
-            //newResourceTypeToImage[dTypes[i]] = images[i];
             var img = images[i];
             var imgCanvas = document.createElement("canvas");
             var imgContext = imgCanvas.getContext("2d");
@@ -864,8 +974,11 @@ function generate() {
         case "expandeddoublepeanut":
             mapDef = expandedDoublePeanutMap;
             break;
-        case "triple":
-            mapDef = tripleMap;
+        case "expandeddoublewide":
+            mapDef = expandedDoubleWideMap;
+            break;
+        case "triplepeanut":
+            mapDef = triplePeanutMap;
             break;
         case "triplewide":
             mapDef = tripleWideMap;
@@ -890,6 +1003,10 @@ function generate() {
     catanMap.draw();
 }
 
+//=====================================================================================================================
+// MapDefinition
+//=====================================================================================================================
+
 function MapDefinition() {
     this.resourceDict = null;
     this.numberDict = null;
@@ -902,7 +1019,7 @@ MapDefinition.prototype.checkValidity = function() {
     var nDictLen = this.sumDictVals(this.numberDict);
     var numDeserts = this.resourceDict["desert"];
 
-    // Allow the field to be smaller than the number of available tiles
+    // Changed to allow the field to be smaller than the number of available tiles
     return (cArrLen <= rDictLen) && (rDictLen == (nDictLen + numDeserts));
 }
 
@@ -914,41 +1031,16 @@ MapDefinition.prototype.sumDictVals = function(dict) {
     return sum;
 }
 
+//=====================================================================================================================
+// CatanMap
+//=====================================================================================================================
+
 function CatanMap() {
     this.mapDefinition = null;
     this.hexTiles = null;
     this.coordToTile = {};
     this.coordSpan = [0, 0];
-}
-
-CatanMap.prototype.defineMap = function(mapDefinition) {
-    if (mapDefinition.checkValidity()) {
-
-        this.mapDefinition = mapDefinition;
-
-        var coordRangeX = [0, 0];
-        var coordRangeY = [0, 0];
-
-        for (var i = 0; i < mapDefinition.coordinatesArray.length; i += 1) {
-            var coord = mapDefinition.coordinatesArray[i];
-            coordRangeX = [
-                Math.min(coordRangeX[0], coord[0]),
-                Math.max(coordRangeX[1], coord[0])
-            ];
-            coordRangeY = [
-                Math.min(coordRangeY[0], coord[1]),
-                Math.max(coordRangeY[1], coord[1])
-            ];
-        }
-
-        this.coordSpan = [
-            coordRangeX[1] - coordRangeX[0],
-            coordRangeY[1] - coordRangeY[0]
-        ];
-
-    } else {
-        console.log("Invalid map definition.");
-    }
+    this.coordCenter = [0, 0];
 }
 
 CatanMap.prototype.generate = function() {
@@ -988,10 +1080,7 @@ CatanMap.prototype.generate = function() {
             // var invalid;
             // do {
                 newCoords = tileCoordinates.random(true);
-                desertHexTile.setCoordinate.apply(
-                    desertHexTile,
-                    newCoords
-                );
+                desertHexTile.setCoordinate.apply(desertHexTile, newCoords);
             //     invalid = this.isCoastal(desertHexTile);
             // } while (invalid);
             desertHexTile.setResourceType("desert");
@@ -1003,10 +1092,7 @@ CatanMap.prototype.generate = function() {
             // Move all non-productive tile numbers (2 and 12) to the front
             // of the tileNumbers array
             var nonProductiveIdx = [];
-            nonProductiveIdx = nonProductiveIdx.concat(
-                tileNumbers.indexOfArray(2),
-                tileNumbers.indexOfArray(12)
-            );
+            nonProductiveIdx = nonProductiveIdx.concat(tileNumbers.indexOfArray(2), tileNumbers.indexOfArray(12));
             for (var i = 0; i < nonProductiveIdx.length; i += 1) {
                 tileNumbers.swap(i, nonProductiveIdx[i]);
             }
@@ -1015,10 +1101,7 @@ CatanMap.prototype.generate = function() {
         // Move all highly productive tile numbers (6 and 8) to the front
         // of the tileNumbers array
         var highlyProductiveIdx = [];
-        highlyProductiveIdx = highlyProductiveIdx.concat(
-            tileNumbers.indexOfArray(6),
-            tileNumbers.indexOfArray(8)
-        );
+        highlyProductiveIdx = highlyProductiveIdx.concat(tileNumbers.indexOfArray(6), tileNumbers.indexOfArray(8));
         for (var i = 0; i < highlyProductiveIdx.length; i += 1) {
             tileNumbers.swap(i, highlyProductiveIdx[i]);
         }
@@ -1035,10 +1118,7 @@ CatanMap.prototype.generate = function() {
                 var tmpCoords = [];
                 do {
                     newCoords = tileCoordinates.random(true);
-                    newHexTile.setCoordinate.apply(
-                        newHexTile,
-                        newCoords
-                    );
+                    newHexTile.setCoordinate.apply(newHexTile, newCoords);
                     invalid = this.hasHighlyProductiveNeighbors(newHexTile);
                     if (invalid) {
                         tmpCoords.push(newCoords);
@@ -1049,10 +1129,7 @@ CatanMap.prototype.generate = function() {
                 var tmpCoords = [];
                 do {
                     newCoords = tileCoordinates.random(true);
-                    newHexTile.setCoordinate.apply(
-                        newHexTile,
-                        newCoords
-                    );
+                    newHexTile.setCoordinate.apply(newHexTile, newCoords);
                     invalid = this.hasNonProductiveNeighbors(newHexTile);
                     if (invalid) {
                         tmpCoords.push(newCoords);
@@ -1060,15 +1137,11 @@ CatanMap.prototype.generate = function() {
                 } while (invalid);
                 tileCoordinates = tileCoordinates.concat(tmpCoords);
             } else {
-
                 invalid = true;
                 var tmpCoords = [];
                 while (invalid && tileCoordinates.length > 0) {
                     newCoords = tileCoordinates.random(true);
-                    newHexTile.setCoordinate.apply(
-                        newHexTile,
-                        newCoords
-                    );
+                    newHexTile.setCoordinate.apply(newHexTile, newCoords);
                     invalid = this.doesFormTriangle(newHexTile) || this.doesFormChain(newHexTile) || this.hasSameNumberedNeighbour(newHexTile);
 
                     if (invalid) {
@@ -1093,6 +1166,29 @@ CatanMap.prototype.generate = function() {
     }
 }
 
+CatanMap.prototype.defineMap = function(mapDefinition) {
+    if (mapDefinition.checkValidity()) {
+
+        this.mapDefinition = mapDefinition;
+
+        var coordRangeX = [0, 0];
+        var coordRangeY = [0, 0];
+
+        for (var i = 0; i < mapDefinition.coordinatesArray.length; i += 1) {
+            var coord = mapDefinition.coordinatesArray[i];
+            coordRangeX = [Math.min(coordRangeX[0], coord[0]), Math.max(coordRangeX[1], coord[0])];
+            coordRangeY = [Math.min(coordRangeY[0], coord[1]), Math.max(coordRangeY[1], coord[1])];
+        }
+
+        this.coordSpan = [coordRangeX[1] - coordRangeX[0], coordRangeY[1] - coordRangeY[0]];
+        this.coordCenter = [this.coordSpan[0] / 2, this.coordSpan[1] / 2];
+
+        //console.log("Draw: cx0:" + coordRangeX[0] + ", cx1:" + coordRangeX[1] + ", cy0:" + coordRangeY[0] + ", cy1:" + coordRangeY[1]);
+    } else {
+        console.log("Invalid map definition.");
+    }
+}
+
 CatanMap.prototype.draw = function() {
     if (this.hexTiles) {
         drawingContext.clear();
@@ -1103,27 +1199,37 @@ CatanMap.prototype.draw = function() {
 }
 
 CatanMap.prototype.resize = function() {
-    /* Size = Height / ( (coordSpacing + 2) * Math.sin(Math.PI/3) )
-     * Size = Width / ( (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2) + 2 )
-     */
-    var wSize = (mapCanvas.width - 10) /
-        (((this.coordSpan[0] + 3)* xHexVal));
-    var hSize = (mapCanvas.height - 10) /
-        ((this.coordSpan[1] + 3) * yHexVal);
-    size = Math.floor(Math.min(wSize, hSize));
-    dx = size * xHexVal;
-    dy = size * Math.sin(Math.PI / 3);
+    // Hexagon Formulas:
+    // Height = (coordSpacing + 2) * dy
+    //        = (coordSpacing + 2) * Math.sin(Math.PI/3) * size
+    // Size = Height / ( (coordSpacing + 2) * Math.sin(Math.PI/3) )
+    // Width = (coordSpacing * dx) + (2 * size)
+    //       = (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2 * size) + (2 * size)
+    //       = ( (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2) + 2 ) * size
+    // Size = Width / ( (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2) + 2 )
 
-    console.log("Resize1: W:" + wSize + ", H:" + hSize + ", S:" + size + ", X:" + dx + ", Y:" + dy);
-    console.log("Resize2: CS0:" + this.coordSpan[0] + ", CS1:" + this.coordSpan[1] + ", wTrg:" + (1 + Math.cos(Math.PI / 3)) / 2 + ", hTrg:" + yHexVal);
+    var wSize = (mapCanvas.width) / ((this.coordSpan[0] + 3) * hexHeightVal);
+    var hSize = (mapCanvas.height) / ((this.coordSpan[1] + 3) * hexWidthVal);
+    if (mapStyle == "retro") {
+        wSize = (mapCanvas.width) / ((this.coordSpan[0] + 3) * hexWidthVal);
+        hSize = (mapCanvas.height) / ((this.coordSpan[1] + 3) * hexHeightVal);
+    }
+
+    size = Math.floor(Math.min(wSize, hSize));
+
+    dx = size * hexWidthVal;
+    dy = size * hexHeightVal;
+
+    // console.log("Resize1: W:" + wSize + ", H:" + hSize + ", S:" + size + ", X:" + dx + ", Y:" + dy);
+    // console.log("Resize2: CS0:" + this.coordSpan[0] + ", CS1:" + this.coordSpan[1] + ", wTrg:" + hexWidthVal + ", hTrg:" + hexHeightVal);
 }
 
 CatanMap.prototype.getAdjacentTilesByCoords = function(x, y) {
     var adjTiles = [];
 
     // (+0,+2), (+2,+1), (+2,-1), (+0,-2), (-2,-1), (-2,1)
-    var xshift = [0, 2, 2, 0, -2, -2];
-    var yshift = [2, 1, -1, -2, -1, 1];
+    var xshift = [0, 2,  2,  0, -2, -2];
+    var yshift = [2, 1, -1, -2, -1,  1];
 
     for (var i = 0; i < 6; i += 1) {
         var adjTile = this.coordToTile[
@@ -1191,6 +1297,7 @@ CatanMap.prototype.isCoastal = function(tile) {
     return adjacentTiles.length != 6;
 }
 
+// TODO look into issues with this function
 CatanMap.prototype.doesFormChain = function(tile) {
     var adjacentTiles = this.getAdjacentTiles(tile);
 
@@ -1202,7 +1309,7 @@ CatanMap.prototype.doesFormChain = function(tile) {
     }
 
     if (count >= 2) {
-        console.log("tile: " + tile.number + ", " + tile.resourceType + " -> true");
+        //console.log("tile: " + tile.number + ", " + tile.resourceType + " -> true");
         return true;
     }
 
@@ -1215,16 +1322,20 @@ CatanMap.prototype.doesFormChain = function(tile) {
                 }
 
                 if (tile.resourceType === ad2[j].resourceType) {
-                    console.log("tile: " + tile.number + ", " + tile.resourceType + " -> true");
+                    //console.log("tile: " + tile.number + ", " + tile.resourceType + " -> true");
                     return true;
                 }
             }
         }
     }
 
-    console.log("tile: " + tile.number + ", " + tile.resourceType + " -> false");
+    //console.log("tile: " + tile.number + ", " + tile.resourceType + " -> false");
     return false;
 }
+
+//=====================================================================================================================
+// HexTile
+//=====================================================================================================================
 
 function HexTile() {
     this.gridX;
@@ -1274,14 +1385,23 @@ HexTile.prototype.draw = function() {
     this.xCenter = canvasCenterX + dx * this.gridX;
     this.yCenter = canvasCenterY + dy * this.gridY;
 
-    this.drawBase();
+    var angle = Math.PI / 6;
+    if (mapStyle == "retro") {
+        angle = 0;
+    }
+    var rotatedPoint = rotatePoint(canvasCenterX, canvasCenterY, angle, this.xCenter, this.yCenter);
+    this.xCenter = rotatedPoint.outX;
+    this.yCenter = rotatedPoint.outY;
+    // console.log("Draw: x:" + this.xCenter + ", y:" + this.yCenter + ", xC:" + canvasCenterX + ", yC:" + canvasCenterY + ", xO:" + rotatedPoint.outX + ", yO:" + rotatedPoint.outY);
+
+    this.drawBase(angle);
     // Don't draw number if desert
     if (this.number) {
         this.drawNumber();
     }
 }
 
-HexTile.prototype.drawBase = function() {
+HexTile.prototype.drawBase = function(angle) {
 
     if (mapStyle == "retro") {
         drawingContext.lineWidth = 10;
@@ -1305,6 +1425,9 @@ HexTile.prototype.drawBase = function() {
     // }
 
     var angleOffset = Math.PI / 6;
+    if (angle == Math.PI / 6) {
+        angleOffset = Math.PI;
+    }
 
     // Begin Path and start at top of hexagon
     drawingContext.beginPath();
@@ -1316,10 +1439,7 @@ HexTile.prototype.drawBase = function() {
     var newAngle;
     for (var i = 1; i <= 6; i += 1) {
         newAngle = i * Math.PI / 3;
-        drawingContext.lineTo(
-            this.xCenter + size * Math.sin(newAngle + angleOffset),
-            this.yCenter - size * Math.cos(newAngle + angleOffset)
-        );
+        drawingContext.lineTo(this.xCenter + size * Math.sin(newAngle + angleOffset), this.yCenter - size * Math.cos(newAngle + angleOffset));
     }
     drawingContext.closePath();
 
@@ -1333,25 +1453,18 @@ HexTile.prototype.drawBase = function() {
 
         if (imgCanvas != null)
         {
-            drawingContext.drawImage(
-                imgCanvas,
-                0, 0, imgCanvas.width, imgCanvas.height,
-                this.xCenter - size,
-                this.yCenter - dy,
-                2 * size,
-                2 * dy
-            );
+            if (angle == 0) {
+                drawingContext.drawImage(imgCanvas, 0, 0, imgCanvas.width, imgCanvas.height, this.xCenter - size, this.yCenter - dy, 2 * size, 2 * dy);
+            }
+            else if (angle == Math.PI / 6) {
+                // Place a tile down rotated 30 degrees (will be used for dock placement)
+                drawingContext.save(); // Save the current state of the drawing context
+                drawingContext.translate(this.xCenter - dy, this.yCenter - size / 2); // Translate to the middle of the left side
+                drawingContext.rotate(angle); // Rotate by 30 degrees (30 degrees = Math.PI / 6 radians)
+                drawingContext.drawImage(imgCanvas, 0, -dy, 2 * size, 2 * dy);
+                drawingContext.restore(); // Restore the previous state of the drawing context
+            }
         }
-        
-        // Place a tile down rotated 30 degrees (will be used for dock placement)
-        // drawingContext.save(); // Save the current state of the drawing context
-        // drawingContext.translate(this.xCenter - dy, this.yCenter - size/2); // Translate to the middle of the left side
-        // drawingContext.rotate(Math.PI / 6); // Rotate by 30 degrees (30 degrees = Math.PI / 6 radians)
-        // drawingContext.drawImage(
-        //     imgCanvas,
-        //     0, -dy, 2 * size, 2 * dy // Draw the rotated image
-        // );
-        // drawingContext.restore(); // Restore the previous state of the drawing context
 
     } else {
         drawingContext.fill();
@@ -1366,8 +1479,7 @@ HexTile.prototype.drawNumber = function() {
     drawingContext.lineWidth = size * 0.02;
 
     drawingContext.beginPath();
-    drawingContext.arc(this.xCenter, this.yCenter, 0.375 * size,
-        0, 2 * Math.PI, false);
+    drawingContext.arc(this.xCenter, this.yCenter, 0.375 * size, 0, 2 * Math.PI, false);
     drawingContext.closePath();
 
     drawingContext.fill();
@@ -1403,6 +1515,9 @@ HexTile.prototype.drawNumber = function() {
     }
 }
 
+//=====================================================================================================================
+// Misc Functions and Modifiers
+//=====================================================================================================================
 Array.prototype.random = function(removeElem) {
     var idx = Math.floor(Math.random() * this.length);
     var val = this[idx];
@@ -1436,6 +1551,22 @@ Array.prototype.swap = function(idx1, idx2) {
     var tmp = this[idx1];
     this[idx1] = this[idx2];
     this[idx2] = tmp;
+}
+
+function rotatePoint(xCenter, yCenter, angle, x, y) {
+    // Translate the point to the origin
+    var translatedX = x - xCenter;
+    var translatedY = y - yCenter;
+
+    // Apply rotation formula
+    var rotatedX = translatedX * Math.cos(angle) - translatedY * Math.sin(angle);
+    var rotatedY = translatedX * Math.sin(angle) + translatedY * Math.cos(angle);
+
+    // Translate back to the original coordinate system
+    var outX = rotatedX + xCenter;
+    var outY = rotatedY + yCenter;
+
+    return { outX: outX, outY: outY };
 }
 
 function addCanvas() {
