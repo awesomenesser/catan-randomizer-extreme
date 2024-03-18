@@ -858,6 +858,12 @@ function init() {
     loadTileImages(function() {
         var button = $('button#gen-map-button')[0];
         $(button).click(generate);
+    
+        var savedMapStyle = localStorage.getItem('mapStyle');
+        if (savedMapStyle) {
+            $('input[name="mapStyle"][value="' + savedMapStyle + '"]').attr('checked', true);
+        }
+        $('input[name="mapStyle"]').change(redraw);
         button.disabled = false;
         button.innerHTML = "GENERATE A NEW MAP";
     });
@@ -998,6 +1004,14 @@ function generate() {
     do {
         retry = catanMap.generate();
     } while (retry);
+
+    catanMap.resize();
+    catanMap.draw();
+}
+
+function redraw() {
+    mapStyle = $('input[name=mapStyle]:checked').val();
+    localStorage.setItem('mapStyle', mapStyle);
 
     catanMap.resize();
     catanMap.draw();
