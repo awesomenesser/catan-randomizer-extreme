@@ -1038,6 +1038,7 @@ MapDefinition.prototype.sumDictVals = function(dict) {
 function CatanMap() {
     this.mapDefinition = null;
     this.hexTiles = null;
+    this.dockHexTiles = null;
     this.coordToTile = {};
     this.coordSpan = [0, 0];
     this.coordCenter = [0, 0];
@@ -1049,6 +1050,21 @@ CatanMap.prototype.generate = function() {
     if (this.mapDefinition) {
 
         this.hexTiles = [];
+        this.dockHexTiles = [];
+
+        // Dock test
+        // var oceanTiles = this.findUniqueAdjacentNonMapTiles();
+        // console.log("Ocean: " + oceanTiles.length);
+        // for (var i = 0; i < oceanTiles.length; i += 1) {
+        //     var dockHexTile = new HexTile();
+        //     dockHexTile.setDockType("tripledock");
+        //     dockHexTile.setCoordinate.apply(dockHexTile, oceanTiles[i]);
+        //     dockHexTile.dockRotation = 4;
+        //     this.dockHexTiles.push(dockHexTile);
+        // }
+
+        // var coastalTiles = this.findTilesWithNotSixAdjacentTiles();
+        // console.log("Coastal: " + coastalTiles.length);
 
         var numTiles = this.mapDefinition.coordinatesArray.length;
 
@@ -1070,20 +1086,28 @@ CatanMap.prototype.generate = function() {
             }
         }
 
+        // Place desert tiles
         var newCoords = null;
         var numDeserts = this.mapDefinition.resourceDict["desert"];
-
-        // TODO make sure that the desert tiles are not on the coast (if enabled)
-        //   Not as easy since the grid is empty here, so the ajacent checks don't work
         for (var i = 0; i < numDeserts; i += 1) {
+            //console.log("Desert Count: " + (i + 1) + "/" + numDeserts);
             var desertHexTile = new HexTile();
-            // var invalid;
-            // do {
-                newCoords = tileCoordinates.random(true);
-                desertHexTile.setCoordinate.apply(desertHexTile, newCoords);
-            //     invalid = this.isCoastal(desertHexTile);
-            // } while (invalid);
             desertHexTile.setResourceType("desert");
+            var invalid = false;
+            do {
+                invalid = false;
+                newCoords = tileCoordinates.random(false);
+                desertHexTile.setCoordinate.apply(desertHexTile, newCoords);
+                if ($('input[name=desertAvoidCoast]:checked').val()) {
+                    invalid |= this.isCoastal(newCoords);
+                }
+                if ($('input[name=desertAvoidTouching]:checked').val()) {
+                    invalid |= this.hasSameTypeNeighbour(desertHexTile);
+                    //console.log("Same type: " + this.hasSameTypeNeighbour(desertHexTile));
+                }
+            } while (invalid);
+            tileCoordinates.remove(newCoords);
+            desertHexTile.setCoordinate.apply(desertHexTile, newCoords);
             this.hexTiles.push(desertHexTile);
             this.coordToTile[newCoords.toString()] = desertHexTile;
         }
@@ -1146,7 +1170,7 @@ CatanMap.prototype.generate = function() {
 
                     if (invalid) {
                         if (tileCoordinates.length === 0) {
-                            console.log("gotcha! Try again!");
+                            // console.log("gotcha! Try again!");
                             return true;
                         } else {
                             tmpCoords.push(newCoords);
@@ -1196,6 +1220,12 @@ CatanMap.prototype.draw = function() {
             this.hexTiles[i].draw();
         }
     }
+    if (this.dockHexTiles) {
+        //drawingContext.clear();
+        for (var i = 0; i < this.dockHexTiles.length; i += 1) {
+            this.dockHexTiles[i].draw();
+        }
+    }
 }
 
 CatanMap.prototype.resize = function() {
@@ -1215,7 +1245,8 @@ CatanMap.prototype.resize = function() {
         hSize = (mapCanvas.height) / ((this.coordSpan[1] + 3) * hexHeightVal);
     }
 
-    size = Math.floor(Math.min(wSize, hSize));
+    //size = Math.floor(Math.min(wSize, hSize));
+    size = Math.min(wSize, hSize);
 
     dx = size * hexWidthVal;
     dy = size * hexHeightVal;
@@ -1232,9 +1263,7 @@ CatanMap.prototype.getAdjacentTilesByCoords = function(x, y) {
     var yshift = [2, 1, -1, -2, -1,  1];
 
     for (var i = 0; i < 6; i += 1) {
-        var adjTile = this.coordToTile[
-            [x + xshift[i], y + yshift[i]].toString()
-        ];
+        var adjTile = this.coordToTile[[x + xshift[i], y + yshift[i]].toString()];
         // Will be null if no hex tile found at that coordinate
         if (adjTile) {
             adjTiles.push(adjTile);
@@ -1242,6 +1271,95 @@ CatanMap.prototype.getAdjacentTilesByCoords = function(x, y) {
     }
 
     return adjTiles;
+}
+
+CatanMap.prototype.findTilesWithNotSixAdjacentTiles = function() {
+    var result = [];
+
+    var xshift = [0, 2,  2,  0, -2, -2];
+    var yshift = [2, 1, -1, -2, -1,  1];
+    
+    for (var i = 0; i < this.mapDefinition.coordinatesArray.length; i++) {
+        var count = 0;
+        var tileCoord = this.mapDefinition.coordinatesArray[i];
+        
+        // Check adjacent tiles
+        for (var j = 0; j < 6; j++) {
+            var adjacentX = tileCoord[0] + xshift[j];
+            var adjacentY = tileCoord[1] + yshift[j];
+            
+            // Check if the adjacent tile exists in the array
+            if (this.mapDefinition.coordinatesArray.some(coord => coord[0] === adjacentX && coord[1] === adjacentY)) {
+                count++;
+            }
+        }
+        
+        // If the count of adjacent tiles is not 6, add the tileCoord to the result list
+        if (count !== 6) {
+            result.push(tileCoord);
+        }
+    }
+    
+    return result;
+}
+
+CatanMap.prototype.findUniqueAdjacentNonMapTiles = function() {
+    var result = [];
+    var xshift = [0, 2,  2,  0, -2, -2];
+    var yshift = [2, 1, -1, -2, -1,  1];
+    
+    // Function to check if a coordinate is in the coordinatesArray
+    var isInCoordinatesArray = function(x, y) {
+        return this.mapDefinition.coordinatesArray.some(coord => coord[0] === x && coord[1] === y);
+    }.bind(this);
+    
+    // Function to check if a coordinate is already in the result
+    var isInResult = function(x, y) {
+        return result.some(coord => coord[0] === x && coord[1] === y);
+    };
+    
+    for (var i = 0; i < this.mapDefinition.coordinatesArray.length; i++) {
+        var tileCoord = this.mapDefinition.coordinatesArray[i];
+        
+        // Check adjacent tiles
+        for (var j = 0; j < 6; j++) {
+            var adjacentX = tileCoord[0] + xshift[j];
+            var adjacentY = tileCoord[1] + yshift[j];
+            
+            // Check if the adjacent tile exists in the coordinatesArray and not in result
+            if (!isInCoordinatesArray(adjacentX, adjacentY) && !isInResult(adjacentX, adjacentY)) {
+                result.push([adjacentX, adjacentY]);
+            }
+        }
+    }
+    
+    return result;
+};
+
+CatanMap.prototype.isCoastal = function(tileCoord) {
+    var count = 0;
+    var xshift = [0, 2,  2,  0, -2, -2];
+    var yshift = [2, 1, -1, -2, -1,  1];
+    
+    // Check adjacent tiles
+    for (var j = 0; j < 6; j++) {
+        var adjacentX = tileCoord[0] + xshift[j];
+        var adjacentY = tileCoord[1] + yshift[j];
+        
+        // Check if the adjacent tile exists in the array
+        if (this.mapDefinition.coordinatesArray.some(coord => coord[0] === adjacentX && coord[1] === adjacentY)) {
+            count++;
+        }
+    }
+    
+    return !(count === 6);
+}
+
+CatanMap.prototype.AdjacentTiles = function(tile) {
+    var tileX = tile.gridX;
+    var tileY = tile.gridY;
+
+    return this.getAdjacentTilesByCoords(tileX, tileY);
 }
 
 CatanMap.prototype.getAdjacentTiles = function(tile) {
@@ -1281,6 +1399,16 @@ CatanMap.prototype.hasSameNumberedNeighbour = function(tile) {
     return false;
 }
 
+CatanMap.prototype.hasSameTypeNeighbour = function(tile) {
+    var adjacentTiles = this.getAdjacentTiles(tile);
+    for (var i = 0; i < adjacentTiles.length; i += 1) {
+        if (tile.resourceType == adjacentTiles[i].resourceType) {
+            return true;
+        }
+    }
+    return false;
+}
+
 CatanMap.prototype.doesFormTriangle = function(tile) {
     var adjacentTiles = this.getAdjacentTiles(tile);
     for (var i = 0; i < adjacentTiles.length; i += 1) {
@@ -1290,11 +1418,6 @@ CatanMap.prototype.doesFormTriangle = function(tile) {
         }
     }
     return false;
-}
-
-CatanMap.prototype.isCoastal = function(tile) {
-    var adjacentTiles = this.getAdjacentTiles(tile);
-    return adjacentTiles.length != 6;
 }
 
 // TODO look into issues with this function
@@ -1343,6 +1466,8 @@ function HexTile() {
     this.xCenter;
     this.yCenter;
     this.resourceType = "none";
+    this.dockType = "none";
+    this.dockRotation = 0;
     this.fillStyle = defaultFillStyle;
     this.number;
 }
@@ -1361,6 +1486,14 @@ HexTile.prototype.setResourceType = function(resourceType) {
         this.fillStyle = this.hexColorMap[resourceType];
     } else {
         console.log("Unrecognized resource type:", resourceType);
+    }
+}
+
+HexTile.prototype.setDockType = function(dockType) {
+    if (dockTypeToImageCanvas[dockType]) {
+        this.dockType = dockType;
+    } else {
+        console.log("Unrecognized resource type:", dockType);
     }
 }
 
@@ -1417,17 +1550,20 @@ HexTile.prototype.drawBase = function(angle) {
         drawingContext.strokeStyle = this.strokeStyle;
     }
 
-    // Debug desert coast feature
-    // var adjacentTiles = catanMap.getAdjacentTiles(this);
-    // if ((adjacentTiles.length != 6) && (this.resourceType == "desert")) {
-    //     drawingContext.strokeStyle = "rgba(255, 0, 0, 255)";
-    //     drawingContext.lineWidth = 10;
-    // }
-
     var angleOffset = Math.PI / 6;
     if (angle == Math.PI / 6) {
         angleOffset = Math.PI;
     }
+
+    var hexWasDrawn = false;
+    if (dockTypeToImageCanvas[this.dockType] != null) {
+        drawingContext.strokeStyle = "blue";
+    }
+    // else {
+    //     if (catanMap.isCoastal([this.gridX, this.gridY])) {
+    //         drawingContext.strokeStyle = "red";
+    //     }
+    // }
 
     // Begin Path and start at top of hexagon
     drawingContext.beginPath();
@@ -1442,35 +1578,38 @@ HexTile.prototype.drawBase = function(angle) {
         drawingContext.lineTo(this.xCenter + size * Math.sin(newAngle + angleOffset), this.yCenter - size * Math.cos(newAngle + angleOffset));
     }
     drawingContext.closePath();
+    hexWasDrawn = true;
 
     if ((mapStyle == "retro") || (mapStyle == "new")) {
-
-        var imgCanvas = resourceTypeToImageCanvas[this.resourceType];
+        var imgCanvas = resourceTypeToImageCanvas[this.resourceType]
         if (mapStyle == "new")
         {
             imgCanvas = newResourceTypeToImageCanvas[this.resourceType];
         }
 
-        if (imgCanvas != null)
-        {
-            if (angle == 0) {
-                drawingContext.drawImage(imgCanvas, 0, 0, imgCanvas.width, imgCanvas.height, this.xCenter - size, this.yCenter - dy, 2 * size, 2 * dy);
-            }
-            else if (angle == Math.PI / 6) {
-                // Place a tile down rotated 30 degrees (will be used for dock placement)
-                drawingContext.save(); // Save the current state of the drawing context
-                drawingContext.translate(this.xCenter - dy, this.yCenter - size / 2); // Translate to the middle of the left side
-                drawingContext.rotate(angle); // Rotate by 30 degrees (30 degrees = Math.PI / 6 radians)
-                drawingContext.drawImage(imgCanvas, 0, -dy, 2 * size, 2 * dy);
-                drawingContext.restore(); // Restore the previous state of the drawing context
-            }
+        if (dockTypeToImageCanvas[this.dockType]) {
+            var imgCanvas = dockTypeToImageCanvas[this.dockType];
+            angle = (Math.PI / 3) * (this.dockRotation) + ((mapStyle == "new") ? Math.PI / 6 : 0);
         }
 
+        if (imgCanvas != null)
+        {
+                drawingContext.save();
+                drawingContext.translate(this.xCenter, this.yCenter);
+                drawingContext.rotate(angle);
+                drawingContext.drawImage(imgCanvas, -(size), -dy, 2 * size, 2 * dy);
+                drawingContext.restore();
+        }
     } else {
-        drawingContext.fill();
+        
+        if (hexWasDrawn) {
+            drawingContext.fill();
+        }
     }
 
-    drawingContext.stroke();
+    if (hexWasDrawn) {
+        drawingContext.stroke();
+    }
 }
 
 HexTile.prototype.drawNumber = function() {
@@ -1481,35 +1620,37 @@ HexTile.prototype.drawNumber = function() {
     drawingContext.beginPath();
     drawingContext.arc(this.xCenter, this.yCenter, 0.375 * size, 0, 2 * Math.PI, false);
     drawingContext.closePath();
-
     drawingContext.fill();
     drawingContext.stroke();
 
-    //var fontSizePt = Math.ceil(30 / 40 * (.45 * size - 8) + 6);
-    // Dynamically scale the font size
-    // 0.55 for 2 and 12
-    // 0.95 for 6 and 8
-    var scale = 0.95 - ((Math.abs(7 - this.number) - 1) * ((0.95 - 0.55) / 4));
-    var fontSizePt = Math.ceil(30 / 40 * (scale * size - 8) + 6);
-
-    drawingContext.font = fontSizePt + "px 'Nazanin LT Bold'";
-    drawingContext.textAlign = "center";
-    var textWidth = drawingContext.measureText(this.number.toString()).width;
     if (this.isHighlyProductive()) {
         drawingContext.fillStyle = "#D90000";
     } else {
         drawingContext.fillStyle = "#000000";
     }
+    
+    // Dynamically scale the font size
+    // 0.55 for 2 and 12
+    // 0.95 for 6 and 8
+    var scale = 0.95 - ((Math.abs(7 - this.number) - 1) * ((0.95 - 0.55) / 4));
+    var fontSizePt = Math.ceil(30 / 40 * (scale * size - 8) + 6);
+    drawingContext.font = fontSizePt + "px 'Nazanin LT Bold'";
+    drawingContext.textAlign = "center";
     drawingContext.fillText(
         this.number.toString(),
         this.xCenter - 0.5,// - textWidth / 2,
         this.yCenter + Math.ceil(0.35 * fontSizePt / 2)//this.yCenter + Math.ceil(0.85 * fontSizePt / 2)
     );
 
-    var dotCount = 6 - Math.abs(7 - this.number);
+    // Draw dots
+    var dotCount = 6 - Math.floor(Math.abs(7 - this.number));
+    var dotY = this.yCenter + (0.2 * size);
+    var dotSize = 0.027 * size;
     for (var i = 0; i < dotCount; i += 1) {
+        var dotX = this.xCenter - (0.08 * size * (dotCount - 1) / 2) + (0.08 * size * i);
         drawingContext.beginPath();
-        drawingContext.arc(this.xCenter - (0.08 * size * (dotCount - 1) / 2) + (0.08 * size * i), this.yCenter + (0.2 * size), 0.025 * size, 0, 2 * Math.PI, false);
+        drawingContext.arc(dotX, dotY, dotSize, 0, 2 * Math.PI, false);
+        drawingContext.arc(dotX, dotY, dotSize, 0, 2 * Math.PI, false);
         drawingContext.closePath();
         drawingContext.fill();
     }
@@ -1525,6 +1666,15 @@ Array.prototype.random = function(removeElem) {
         this.splice(idx, 1);
     }
     return val;
+}
+
+Array.prototype.remove = function(val) {
+    var idx = this.indexOf(val);
+    if (idx !== -1) {
+        this.splice(idx, 1);
+        return true; // Indicate successful removal
+    }
+    return false; // Indicate that value was not found
 }
 
 Array.prototype.copy = function() {
