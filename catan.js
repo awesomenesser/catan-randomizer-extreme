@@ -1067,6 +1067,13 @@ CatanMap.prototype.generate = function() {
         this.hexTiles = [];
         this.dockHexTiles = [];
 
+        var dockTileTypes = [];
+        for (var key in this.mapDefinition.dockDict) {
+            for (var i = 0; i < this.mapDefinition.dockDict[key]; i += 1) {
+                dockTileTypes.push(key);
+            }
+        }
+
         if ($('input[name=dockTesting]:checked').val() == "enable") {
             // Dock test
             var oceanTiles = this.findUniqueAdjacentNonMapTiles();
@@ -1079,7 +1086,7 @@ CatanMap.prototype.generate = function() {
             }
             for (var i = 0; i < oceanTiles.length; i += 1) {
                 var dockHexTile = new HexTile();
-                dockHexTile.setDockType("tripledock");
+                dockHexTile.setDockType(dockTileTypes.random(false));
                 dockHexTile.setCoordinate.apply(dockHexTile, oceanTiles[i]);
 
                 var match;
