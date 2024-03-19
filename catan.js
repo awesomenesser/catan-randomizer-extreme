@@ -855,14 +855,15 @@ window.onresize = function(event) {
 }
 
 function init() {
+    var savedMapStyle = localStorage.getItem('mapStyle');
+    if (savedMapStyle) {
+        $('input[name="mapStyle"][value="' + savedMapStyle + '"]').attr('checked', true);
+    }
+
     loadTileImages(function() {
         var button = $('button#gen-map-button')[0];
         $(button).click(generate);
     
-        var savedMapStyle = localStorage.getItem('mapStyle');
-        if (savedMapStyle) {
-            $('input[name="mapStyle"][value="' + savedMapStyle + '"]').attr('checked', true);
-        }
         $('input[name="mapStyle"]').change(redraw);
         button.disabled = false;
         button.innerHTML = "GENERATE A NEW MAP";
@@ -1066,16 +1067,40 @@ CatanMap.prototype.generate = function() {
         this.hexTiles = [];
         this.dockHexTiles = [];
 
-        // Dock test
-        // var oceanTiles = this.findUniqueAdjacentNonMapTiles();
-        // console.log("Ocean: " + oceanTiles.length);
-        // for (var i = 0; i < oceanTiles.length; i += 1) {
-        //     var dockHexTile = new HexTile();
-        //     dockHexTile.setDockType("tripledock");
-        //     dockHexTile.setCoordinate.apply(dockHexTile, oceanTiles[i]);
-        //     dockHexTile.dockRotation = 4;
-        //     this.dockHexTiles.push(dockHexTile);
-        // }
+        if ($('input[name=dockTesting]:checked').val() == "enable") {
+            // Dock test
+            var oceanTiles = this.findUniqueAdjacentNonMapTiles();
+            //console.log("Ocean: " + oceanTiles.length);
+            var oceanTiles = sortCoordinatesByAdjacency(oceanTiles);
+            var facets = this.findAdjacentTilesInfo(oceanTiles);
+            //console.log("Facet Count: " + facets.length);
+            for (var i = 0; i < facets.length; i += 1) {
+                //console.log("Facet Count: " + (i + 1) + "/" + facets.length + " i: " + facets[i][0] + " rot: " + facets[i][2]);
+            }
+            for (var i = 0; i < oceanTiles.length; i += 1) {
+                var dockHexTile = new HexTile();
+                dockHexTile.setDockType("tripledock");
+                dockHexTile.setCoordinate.apply(dockHexTile, oceanTiles[i]);
+
+                var match;
+                for (var k = 0; k < facets.length; k += 1) {
+                    if (facets[k][0] === i)
+                    {
+                        match = facets[k];
+                    }
+                }
+                
+                if (match) {
+                    //console.log("Facet Find: " + (i + 1) + "/" + oceanTiles.length + " i: " + match[0] + " rot: " + match[2]);
+                    dockHexTile.dockRotation = match[2];
+                    this.dockHexTiles.push(dockHexTile);
+                } else {
+                    dockHexTile.dockRotation = 0;
+                }
+
+                dockHexTile.debugNumber = i + 1;
+            }
+        }
 
         // var coastalTiles = this.findTilesWithNotSixAdjacentTiles();
         // console.log("Coastal: " + coastalTiles.length);
@@ -1214,18 +1239,41 @@ CatanMap.prototype.defineMap = function(mapDefinition) {
 
         for (var i = 0; i < mapDefinition.coordinatesArray.length; i += 1) {
             var coord = mapDefinition.coordinatesArray[i];
+
             coordRangeX = [Math.min(coordRangeX[0], coord[0]), Math.max(coordRangeX[1], coord[0])];
             coordRangeY = [Math.min(coordRangeY[0], coord[1]), Math.max(coordRangeY[1], coord[1])];
         }
 
         this.coordSpan = [coordRangeX[1] - coordRangeX[0], coordRangeY[1] - coordRangeY[0]];
         this.coordCenter = [this.coordSpan[0] / 2, this.coordSpan[1] / 2];
-
-        //console.log("Draw: cx0:" + coordRangeX[0] + ", cx1:" + coordRangeX[1] + ", cy0:" + coordRangeY[0] + ", cy1:" + coordRangeY[1]);
+        
+        //console.log("Draw: sx:" + this.coordSpan[0] + ", sy:" + this.coordSpan[1] + ", cx:" + this.coordCenter[0] + ", cy:" + this.coordCenter[1]);
     } else {
         console.log("Invalid map definition.");
     }
 }
+
+// var coordRangeX = [0, 0];
+// var coordRangeY = [0, 0];
+// for (var i = 0; i < this.mapDefinition.coordinatesArray.length; i += 1) {
+//     var coord = this.mapDefinition.coordinatesArray[i];
+
+//     if (mapStyle == "new") {
+//         var rotCoord = rotatePoint(
+//                         0, 
+//                         0, 
+//                         -Math.PI / 6, 
+//                         coord[0], 
+//                         coord[1]
+//                         );
+//         coord[0] = rotCoord.outX;
+//         coord[1] = rotCoord.outY;
+//     }
+
+//     coordRangeX = [Math.min(coordRangeX[0], coord[0]), Math.max(coordRangeX[1], coord[0])];
+//     coordRangeY = [Math.min(coordRangeY[0], coord[1]), Math.max(coordRangeY[1], coord[1])];
+// }
+// var rotCoordSpan = [coordRangeX[1] - coordRangeX[0], coordRangeY[1] - coordRangeY[0]];
 
 CatanMap.prototype.draw = function() {
     if (this.hexTiles) {
@@ -1252,11 +1300,28 @@ CatanMap.prototype.resize = function() {
     //       = ( (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2) + 2 ) * size
     // Size = Width / ( (coordSpacing * (1 + Math.cos(Math.PI/3)) / 2) + 2 )
 
-    var wSize = (mapCanvas.width) / ((this.coordSpan[0] + 3) * hexHeightVal);
-    var hSize = (mapCanvas.height) / ((this.coordSpan[1] + 3) * hexWidthVal);
+    var rotCoord = rotatePoint(((this.coordSpan[0] + 5) * hexWidthVal) / 2, 
+                               ((this.coordSpan[1] + 4) * hexHeightVal) / 2, 
+                               -Math.PI / 12, 
+                               (this.coordSpan[0] + 5) * hexWidthVal, 
+                               (this.coordSpan[1] + 4) * hexHeightVal
+                               );
+                               
+    var wSize = (mapCanvas.width) / rotCoord.outX;
+    var hSize = (mapCanvas.height) / rotCoord.outY;
+
+    // var wSize = (mapCanvas.width) / ((this.coordSpan[0] + 4) * hexWidthVal);
+    // var hSize = (mapCanvas.height) / ((this.coordSpan[1] + 4) * hexHeightVal);
+    
+    //console.log("Rot: X1:" + (this.coordSpan[0] + 4) * hexHeightVal + ", X2:" + rotCoord.outX + ", Y1:" + (this.coordSpan[1] + 4) * hexWidthVal + ", Y2:" + rotCoord.outY);
+
+    // var test = rotatePoint(0, 0, Math.PI / 6, wSize, hSize);
+    // wSize = test[0];
+    // hSize = test[1];
+    
     if (mapStyle == "retro") {
-        wSize = (mapCanvas.width) / ((this.coordSpan[0] + 3) * hexWidthVal);
-        hSize = (mapCanvas.height) / ((this.coordSpan[1] + 3) * hexHeightVal);
+        wSize = (mapCanvas.width) / ((this.coordSpan[0] + 4) * hexWidthVal);
+        hSize = (mapCanvas.height) / ((this.coordSpan[1] + 4) * hexHeightVal);
     }
 
     //size = Math.floor(Math.min(wSize, hSize));
@@ -1265,7 +1330,7 @@ CatanMap.prototype.resize = function() {
     dx = size * hexWidthVal;
     dy = size * hexHeightVal;
 
-    // console.log("Resize1: W:" + wSize + ", H:" + hSize + ", S:" + size + ", X:" + dx + ", Y:" + dy);
+    //console.log("Resize: W:" + wSize + ", H:" + hSize + ", S:" + size + ", X:" + dx + ", Y:" + dy);
     // console.log("Resize2: CS0:" + this.coordSpan[0] + ", CS1:" + this.coordSpan[1] + ", wTrg:" + hexWidthVal + ", hTrg:" + hexHeightVal);
 }
 
@@ -1316,6 +1381,30 @@ CatanMap.prototype.findTilesWithNotSixAdjacentTiles = function() {
     
     return result;
 }
+
+CatanMap.prototype.findAdjacentTilesInfo = function(coordsArray) {
+    var result = [];
+    var xshift = [0, 2,  2,  0, -2, -2];
+    var yshift = [2, 1, -1, -2, -1,  1];
+    
+    for (var i = 0; i < coordsArray.length; i++) {
+        for (var j = 0; j < 6; j++) {
+            var adjacentX = coordsArray[i][0] + xshift[j];
+            var adjacentY = coordsArray[i][1] + yshift[j];
+            
+            // Check if the adjacent tile exists in the hexTiles array
+            var adjacentTile = this.mapDefinition.coordinatesArray.find(coord => coord[0] === adjacentX && coord[1] === adjacentY);
+            
+            if (adjacentTile) {
+                // Calculate rotation value based on current tile and adjacent tile positions
+                var rotation = (9 - j) % 6; // Rotate 180 degrees from adjacent tile
+                result.push([i, adjacentTile, rotation]);
+            }
+        }
+    }
+    
+    return result;
+};
 
 CatanMap.prototype.findUniqueAdjacentNonMapTiles = function() {
     var result = [];
@@ -1484,6 +1573,7 @@ function HexTile() {
     this.dockRotation = 0;
     this.fillStyle = defaultFillStyle;
     this.number;
+    this.debugNumber;
 }
 
 HexTile.prototype.strokeStyle = strokeStyle;
@@ -1543,7 +1633,7 @@ HexTile.prototype.draw = function() {
 
     this.drawBase(angle);
     // Don't draw number if desert
-    if (this.number) {
+    if (this.number || this.debugNumber) {
         this.drawNumber();
     }
 }
@@ -1570,29 +1660,32 @@ HexTile.prototype.drawBase = function(angle) {
     }
 
     var hexWasDrawn = false;
-    if (dockTypeToImageCanvas[this.dockType] != null) {
-        drawingContext.strokeStyle = "blue";
-    }
+    // if (dockTypeToImageCanvas[this.dockType] != null) {
+    //     drawingContext.strokeStyle = "blue";
+    // }
     // else {
     //     if (catanMap.isCoastal([this.gridX, this.gridY])) {
     //         drawingContext.strokeStyle = "red";
     //     }
     // }
 
-    // Begin Path and start at top of hexagon
-    drawingContext.beginPath();
-    drawingContext.moveTo(
-        this.xCenter + size * Math.sin(angleOffset),
-        this.yCenter - size * Math.cos(angleOffset)
-    );
-    // Move clockwise and draw hexagon
-    var newAngle;
-    for (var i = 1; i <= 6; i += 1) {
-        newAngle = i * Math.PI / 3;
-        drawingContext.lineTo(this.xCenter + size * Math.sin(newAngle + angleOffset), this.yCenter - size * Math.cos(newAngle + angleOffset));
+    if (dockTypeToImageCanvas[this.dockType] == null)
+    {
+        // Begin Path and start at top of hexagon
+        drawingContext.beginPath();
+        drawingContext.moveTo(
+            this.xCenter + size * Math.sin(angleOffset),
+            this.yCenter - size * Math.cos(angleOffset)
+        );
+        // Move clockwise and draw hexagon
+        var newAngle;
+        for (var i = 1; i <= 6; i += 1) {
+            newAngle = i * Math.PI / 3;
+            drawingContext.lineTo(this.xCenter + size * Math.sin(newAngle + angleOffset), this.yCenter - size * Math.cos(newAngle + angleOffset));
+        }
+        drawingContext.closePath();
+        hexWasDrawn = true;
     }
-    drawingContext.closePath();
-    hexWasDrawn = true;
 
     if ((mapStyle == "retro") || (mapStyle == "new")) {
         var imgCanvas = resourceTypeToImageCanvas[this.resourceType]
@@ -1627,46 +1720,61 @@ HexTile.prototype.drawBase = function(angle) {
 }
 
 HexTile.prototype.drawNumber = function() {
-    drawingContext.fillStyle = "rgba(227, 221, 150, 255)";//"#FFFFFF";
-    drawingContext.strokeStyle = "rgba(113, 110, 75, 128)";//"#000000";
-    drawingContext.lineWidth = size * 0.02;
-
-    drawingContext.beginPath();
-    drawingContext.arc(this.xCenter, this.yCenter, 0.375 * size, 0, 2 * Math.PI, false);
-    drawingContext.closePath();
-    drawingContext.fill();
-    drawingContext.stroke();
-
-    if (this.isHighlyProductive()) {
-        drawingContext.fillStyle = "#D90000";
-    } else {
+    if (this.debugNumber)
+    {
         drawingContext.fillStyle = "#000000";
+        var fontSizePt = Math.ceil(30 / 40 * (0.55 * size - 8) + 6);
+        drawingContext.font = fontSizePt + "px 'Nazanin LT Bold'";
+        drawingContext.textAlign = "center";
+        drawingContext.fillText(
+            this.debugNumber.toString(),
+            this.xCenter - 0.5,// - textWidth / 2,
+            this.yCenter + Math.ceil(0.35 * fontSizePt / 2)//this.yCenter + Math.ceil(0.85 * fontSizePt / 2)
+        );
     }
-    
-    // Dynamically scale the font size
-    // 0.55 for 2 and 12
-    // 0.95 for 6 and 8
-    var scale = 0.95 - ((Math.abs(7 - this.number) - 1) * ((0.95 - 0.55) / 4));
-    var fontSizePt = Math.ceil(30 / 40 * (scale * size - 8) + 6);
-    drawingContext.font = fontSizePt + "px 'Nazanin LT Bold'";
-    drawingContext.textAlign = "center";
-    drawingContext.fillText(
-        this.number.toString(),
-        this.xCenter - 0.5,// - textWidth / 2,
-        this.yCenter + Math.ceil(0.35 * fontSizePt / 2)//this.yCenter + Math.ceil(0.85 * fontSizePt / 2)
-    );
+    else
+    {
+        drawingContext.fillStyle = "rgba(227, 221, 150, 255)";//"#FFFFFF";
+        drawingContext.strokeStyle = "rgba(113, 110, 75, 128)";//"#000000";
+        drawingContext.lineWidth = size * 0.02;
 
-    // Draw dots
-    var dotCount = 6 - Math.floor(Math.abs(7 - this.number));
-    var dotY = this.yCenter + (0.2 * size);
-    var dotSize = 0.027 * size;
-    for (var i = 0; i < dotCount; i += 1) {
-        var dotX = this.xCenter - (0.08 * size * (dotCount - 1) / 2) + (0.08 * size * i);
         drawingContext.beginPath();
-        drawingContext.arc(dotX, dotY, dotSize, 0, 2 * Math.PI, false);
-        drawingContext.arc(dotX, dotY, dotSize, 0, 2 * Math.PI, false);
+        drawingContext.arc(this.xCenter, this.yCenter, 0.375 * size, 0, 2 * Math.PI, false);
         drawingContext.closePath();
         drawingContext.fill();
+        drawingContext.stroke();
+
+        if (this.isHighlyProductive()) {
+            drawingContext.fillStyle = "#D90000";
+        } else {
+            drawingContext.fillStyle = "#000000";
+        }
+        
+        // Dynamically scale the font size
+        // 0.55 for 2 and 12
+        // 0.95 for 6 and 8
+        var scale = 0.95 - ((Math.abs(7 - this.number) - 1) * ((0.95 - 0.55) / 4));
+        var fontSizePt = Math.ceil(30 / 40 * (scale * size - 8) + 6);
+        drawingContext.font = fontSizePt + "px 'Nazanin LT Bold'";
+        drawingContext.textAlign = "center";
+        drawingContext.fillText(
+            this.number.toString(),
+            this.xCenter - 0.5,// - textWidth / 2,
+            this.yCenter + Math.ceil(0.35 * fontSizePt / 2)//this.yCenter + Math.ceil(0.85 * fontSizePt / 2)
+        );
+
+        // Draw dots
+        var dotCount = 6 - Math.floor(Math.abs(7 - this.number));
+        var dotY = this.yCenter + (0.2 * size);
+        var dotSize = 0.027 * size;
+        for (var i = 0; i < dotCount; i += 1) {
+            var dotX = this.xCenter - (0.08 * size * (dotCount - 1) / 2) + (0.08 * size * i);
+            drawingContext.beginPath();
+            drawingContext.arc(dotX, dotY, dotSize, 0, 2 * Math.PI, false);
+            drawingContext.arc(dotX, dotY, dotSize, 0, 2 * Math.PI, false);
+            drawingContext.closePath();
+            drawingContext.fill();
+        }
     }
 }
 
@@ -1715,6 +1823,98 @@ Array.prototype.swap = function(idx1, idx2) {
     var tmp = this[idx1];
     this[idx1] = this[idx2];
     this[idx2] = tmp;
+}
+
+Array.prototype.shuffle = function() {
+    // Loop over the array from the end to the beginning
+    for (let i = this.length - 1; i > 0; i--) {
+        // Generate a random index between 0 and i (inclusive)
+        const j = Math.floor(Math.random() * (i + 1));
+        // Swap the elements at indices i and j
+        this.swap(i, j);
+    }
+    return this;
+}
+
+function sortCoordinatesByAdjacency(coordinates) {
+    // Helper function to check if two coordinates are adjacent
+    function areAdjacent(coord1, coord2) {
+        var xshift = [0, 2,  2,  0, -2, -2];
+        var yshift = [2, 1, -1, -2, -1,  1];
+        
+        for (var i = 0; i < 6; i++) {
+            var adjacentX = coord1[0] + xshift[i];
+            var adjacentY = coord1[1] + yshift[i];
+            
+            if (adjacentX === coord2[0] && adjacentY === coord2[1]) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    // Function to find the next adjacent coordinate
+    function findNextAdjacent(coord, visited) {
+        for (var i = 0; i < coordinates.length; i++) {
+            var nextCoord = coordinates[i];
+            if (!visited.has(nextCoord.toString()) && areAdjacent(coord, nextCoord)) {
+                return nextCoord;
+            }
+        }
+        return null;
+    }
+
+    var visited = new Set();
+    var sortedCoords = [];
+    
+    // Iterate over each coordinate
+    for (var i = 0; i < coordinates.length; i++) {
+        var currentCoord = coordinates[i];
+        if (!visited.has(currentCoord.toString())) {
+            var path = [currentCoord];
+            visited.add(currentCoord.toString());
+            
+            // Build the path of adjacent coordinates
+            var nextCoord = findNextAdjacent(currentCoord, visited);
+            while (nextCoord) {
+                path.push(nextCoord);
+                visited.add(nextCoord.toString());
+                nextCoord = findNextAdjacent(nextCoord, visited);
+            }
+            
+            // Merge the path with the sorted coordinates
+            sortedCoords = sortedCoords.concat(path);
+        }
+    }
+    
+    // Post-processing: Ensure all coordinates are adjacent
+    for (var i = 0; i < sortedCoords.length - 1; i++) {
+        var currentCoord = sortedCoords[i];
+        var nextCoord = sortedCoords[i + 1];
+        if (!areAdjacent(currentCoord, nextCoord)) {
+            // Find the correct position to insert the coordinate
+            for (var j = i + 2; j < sortedCoords.length; j++) {
+                if (areAdjacent(currentCoord, sortedCoords[j])) {
+                    // Insert the coordinate between i and j
+                    sortedCoords.splice(j, 0, currentCoord);
+                    break;
+                }
+            }
+        }
+    }
+
+    // Check if the last coordinate is adjacent to two consecutive coordinates
+    for (var k = 0; k < sortedCoords.length - 1; k++) {
+        if (areAdjacent(sortedCoords[sortedCoords.length - 1], sortedCoords[k]) && 
+            areAdjacent(sortedCoords[sortedCoords.length - 1], sortedCoords[k + 1])) {
+            // Insert the last coordinate between k and k + 1
+            sortedCoords.splice(k + 1, 0, sortedCoords.pop());
+            break;
+        }
+    }
+    
+    return sortedCoords;
 }
 
 function rotatePoint(xCenter, yCenter, angle, x, y) {
